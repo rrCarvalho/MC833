@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#define SERVER_PORT 10
+#define SERVER_PORT 10000
 #define MAX_PENDING 5
 #define MAX_LINE 256
 

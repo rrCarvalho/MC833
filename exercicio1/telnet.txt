@@ -1,0 +1,27 @@
+bash-4.2$ telnet www.google.com 80
+Trying 173.194.42.177...
+Connected to www.google.com.
+Escape character is '^]'.
+GET /
+HTTP/1.0 302 Found
+Cache-Control: private
+Content-Type: text/html; charset=UTF-8
+Location: http://www.google.com.br/?gfe_rd=cr&ei=81IPU8ziOomC8Qevv4CACQ
+Content-Length: 262
+Date: Thu, 27 Feb 2014 15:00:03 GMT
+Server: GFE/2.0
+Alternate-Protocol: 80:quic
+
+<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>302 Moved</TITLE></HEAD><BODY>
+<H1>302 Moved</H1>
+The document has moved
+<A HREF="http://www.google.com.br/?gfe_rd=cr&amp;ei=81IPU8ziOomC8Qevv4CACQ">here</A>.
+</BODY></HTML>
+Connection closed by foreign host.
+bash-4.2$ telnet
+telnet> open 127.0.0.1 80
+Trying 127.0.0.1...
+telnet: connect to address 127.0.0.1: Connection refused
+telnet> quit
+

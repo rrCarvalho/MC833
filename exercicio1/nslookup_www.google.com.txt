@@ -1,0 +1,15 @@
+Server:		143.106.16.144
+Address:	143.106.16.144#53
+
+Non-authoritative answer:
+Name:	www.google.com
+Address: 173.194.42.176
+Name:	www.google.com
+Address: 173.194.42.177
+Name:	www.google.com
+Address: 173.194.42.178
+Name:	www.google.com
+Address: 173.194.42.179
+Name:	www.google.com
+Address: 173.194.42.180
+

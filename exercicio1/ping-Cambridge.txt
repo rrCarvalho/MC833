@@ -1,0 +1,15 @@
+PING www.cam.ac.uk (131.111.150.25) 56(84) bytes of data.
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=1 ttl=47 time=256 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=2 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=3 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=4 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=5 ttl=47 time=256 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=6 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=7 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=8 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=9 ttl=47 time=255 ms
+64 bytes from primary.admin.cam.ac.uk (131.111.150.25): icmp_seq=10 ttl=47 time=255 ms
+
+--- www.cam.ac.uk ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9012ms
+rtt min/avg/max/mdev = 255.566/255.870/256.284/0.308 ms

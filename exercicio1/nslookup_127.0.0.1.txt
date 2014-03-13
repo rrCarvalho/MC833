@@ -1,0 +1,5 @@
+Server:		143.106.16.144
+Address:	143.106.16.144#53
+
+1.0.0.127.in-addr.arpa	name = localhost.
+

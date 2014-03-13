@@ -1,0 +1,61 @@
+traceroute to home.pl (212.85.96.1), 60 hops max, 60 byte packets
+ 1  * * *
+ 2  143.106.16.150 (143.106.16.150)  0.187 ms  0.184 ms  0.175 ms
+ 3  143.106.7.129 (143.106.7.129)  0.453 ms  0.448 ms  0.442 ms
+ 4  area3-gw.unicamp.br (143.106.1.129)  0.695 ms  0.695 ms  0.972 ms
+ 5  ptp-ncc-nbs.unicamp.br (143.106.199.9)  0.398 ms  0.662 ms ptp-nct-nbs.unicamp.br (143.106.199.13)  0.381 ms
+ 6  * * *
+ 7  200.143.252.38 (200.143.252.38)  110.245 ms  109.993 ms  109.985 ms
+ 8  xe-9-3-2.edge2.Miami2.Level3.net (4.59.242.41)  109.948 ms  110.126 ms  110.122 ms
+ 9  ae-32-52.ebr2.Miami1.Level3.net (4.69.138.123)  253.993 ms  253.984 ms  253.966 ms
+10  ae-2-2.ebr2.Atlanta2.Level3.net (4.69.140.142)  252.845 ms  252.703 ms  252.687 ms
+11  * * *
+12  ae-2-2.ebr1.Washington1.Level3.net (4.69.132.86)  252.852 ms  253.152 ms  252.652 ms
+13  ae-81-81.csw3.Washington1.Level3.net (4.69.134.138)  252.634 ms ae-71-71.csw2.Washington1.Level3.net (4.69.134.134)  257.706 ms ae-61-61.csw1.Washington1.Level3.net (4.69.134.130)  254.445 ms
+14  ae-92-92.ebr2.Washington1.Level3.net (4.69.134.157)  253.523 ms ae-82-82.ebr2.Washington1.Level3.net (4.69.134.153)  251.970 ms  251.947 ms
+15  ae-43-43.ebr2.Paris1.Level3.net (4.69.137.57)  252.591 ms ae-41-41.ebr2.Paris1.Level3.net (4.69.137.49)  252.808 ms ae-42-42.ebr2.Paris1.Level3.net (4.69.137.53)  252.667 ms
+16  ae-47-47.ebr1.Frankfurt1.Level3.net (4.69.143.141)  251.435 ms  252.666 ms ae-46-46.ebr1.Frankfurt1.Level3.net (4.69.143.137)  252.960 ms
+17  ae-71-71.csw2.Frankfurt1.Level3.net (4.69.140.6)  252.890 ms ae-61-61.csw1.Frankfurt1.Level3.net (4.69.140.2)  255.422 ms ae-71-71.csw2.Frankfurt1.Level3.net (4.69.140.6)  255.204 ms
+18  ae-64-64.ebr4.Frankfurt1.Level3.net (4.69.163.17)  253.586 ms  252.998 ms ae-74-74.ebr4.Frankfurt1.Level3.net (4.69.163.21)  251.487 ms
+19  ae-1-9.bar1.Warsaw1.Level3.net (4.69.153.70)  251.896 ms  253.093 ms  251.606 ms
+20  LWLcom-Bremen.level3.net (213.242.117.58)  253.271 ms  253.618 ms  254.204 ms
+21  xe-2-3.gate2.home.net.pl (62.129.251.190)  253.981 ms  254.275 ms  253.532 ms
+22  * * *
+23  * * *
+24  * * *
+25  * * *
+26  * * *
+27  * * *
+28  * * *
+29  * * *
+30  * * *
+31  * * *
+32  * * *
+33  * * *
+34  * * *
+35  * * *
+36  * * *
+37  * * *
+38  * * *
+39  * * *
+40  * * *
+41  * * *
+42  * * *
+43  * * *
+44  * * *
+45  * * *
+46  * * *
+47  * * *
+48  * * *
+49  * * *
+50  * * *
+51  * * *
+52  * * *
+53  * * *
+54  * * *
+55  * * *
+56  * * *
+57  * * *
+58  * * *
+59  * * *
+60  * * *

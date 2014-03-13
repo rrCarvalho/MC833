@@ -1,0 +1,18 @@
+traceroute to www.cam.ac.uk (131.111.150.25), 30 hops max, 60 byte packets
+ 1  * * *
+ 2  143.106.16.150 (143.106.16.150)  0.291 ms  0.287 ms  0.280 ms
+ 3  143.106.7.129 (143.106.7.129)  0.527 ms  0.525 ms  0.519 ms
+ 4  area3-gw.unicamp.br (143.106.1.129)  0.512 ms  0.729 ms  0.727 ms
+ 5  ptp-nct-nbs.unicamp.br (143.106.199.13)  26.505 ms ptp-ncc-nbs.unicamp.br (143.106.199.9)  4.141 ms ptp-nct-nbs.unicamp.br (143.106.199.13)  26.499 ms
+ 6  * * *
+ 7  rnp-br-spau.core.redclara.net (200.0.204.129)  3.874 ms  3.918 ms  3.913 ms
+ 8  RedCLARA.mx1.mad.es.geant.net (62.40.124.137)  227.107 ms  227.118 ms  226.923 ms
+ 9  ae3.mx1.par.fr.geant.net (62.40.98.65)  244.397 ms  244.425 ms  244.419 ms
+10  ae1.mx1.lon.uk.geant.net (62.40.98.76)  250.253 ms  250.254 ms  250.199 ms
+11  janet-gw.mx1.lon.uk.geant.net (62.40.124.198)  250.198 ms  250.391 ms  250.369 ms
+12  ae28.lowdss-sbr1.ja.net (146.97.33.18)  253.632 ms  254.893 ms  253.657 ms
+13  ae0.camb-rbr2.ja.net (146.97.37.186)  255.849 ms  255.714 ms  255.702 ms
+14  University-of-Cambridge.Camb-rbr1.eastern.ja.net (146.97.130.2)  255.973 ms  255.956 ms  256.034 ms
+15  route-enet.route-mill.net.cam.ac.uk (192.84.5.93)  256.031 ms  255.883 ms  255.845 ms
+16  route-mill.route-nwest.net.cam.ac.uk (192.84.5.138)  256.076 ms  255.969 ms  255.988 ms
+17  primary.admin.cam.ac.uk (131.111.150.25)  255.982 ms  256.163 ms  256.209 ms

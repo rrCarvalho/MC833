@@ -1,0 +1,5 @@
+Server:		143.106.16.144
+Address:	143.106.16.144#53
+
+144.16.106.143.in-addr.arpa	name = monica.lab.ic.unicamp.br.
+

@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#define SERVER_PORT 10000
+#define SERVER_PORT 10101
 #define MAX_PENDING 5
 #define MAX_LINE 256
 

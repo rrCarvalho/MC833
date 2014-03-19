@@ -1,11 +1,11 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Arch Linux) (format=pdflatex 2014.3.2)  14 MAR 2014 02:57
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Arch Linux) (format=pdflatex 2014.3.14)  19 MAR 2014 04:12
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **relatorio.tex
 (./relatorio.tex
 LaTeX2e <2011/06/27>
-Babel <3.9f> and hyphenation patterns for 78 languages loaded.
+Babel <3.9h> and hyphenation patterns for 78 languages loaded.
 (/usr/share/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texmf-dist/tex/latex/base/size10.clo
@@ -35,13 +35,13 @@ File: uni-global.def 2013/05/13 UCS: Unicode global data
 \uc@temptokena=\toks16
 )
 (/usr/share/texmf-dist/tex/generic/babel/babel.sty
-Package: babel 2013/05/16 v3.9f The Babel package
+Package: babel 2013/12/03 3.9h The Babel package
 
 (/usr/share/texmf-dist/tex/generic/babel-portuges/portuges.ldf
 Language: portuges 2008/03/18 v1.2q Portuguese support from the babel system
 
 (/usr/share/texmf-dist/tex/generic/babel/babel.def
-File: babel.def 2013/05/16 v3.9f Babel common definitions
+File: babel.def 2013/12/03 3.9h Babel common definitions
 \babel@savecnt=\count88
 \U@D=\dimen103
 )
@@ -175,6 +175,9 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 \Gin@req@height=\dimen104
 \Gin@req@width=\dimen105
 )
+(/usr/share/texmf-dist/tex/latex/placeins/placeins.sty
+Package: placeins 2005/04/18  v 2.2
+)
 (/usr/share/texmf-dist/tex/latex/listings/listings.sty
 \lst@mode=\count90
 \lst@gtempboxa=\box26
@@ -216,25 +219,25 @@ File: lstlang1.sty 2013/08/26 1.5b listings language file
 ) (./relatorio.aux)
 \openout1 = `relatorio.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
-LaTeX Font Info:    ... okay on input line 37.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 37.
-LaTeX Font Info:    Try loading font information for TS1+cmr on input line 37.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 38.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 38.
 
 (/usr/share/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    ... okay on input line 38.
 
 (/usr/share/texmf-dist/tex/latex/ucs/ucsencs.def
 File: ucsencs.def 2011/01/21 Fixes to fontencodings LGR, T3
@@ -306,68 +309,142 @@ e
 File: uni-0.def 2013/05/13 UCS: Unicode data U+0000..U+00FF
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 41.
+(Font)              <12> on input line 42.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 41.
+(Font)              <8> on input line 42.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 41.
+(Font)              <6> on input line 42.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Try loading font information for T1+cmtt on input line 46.
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 47.
  (/usr/share/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-<exec-local.png, id=8, 499.8675pt x 179.92218pt>
-File: exec-local.png Graphic file (type png)
- <use exec-local.png>
-Package pdftex.def Info: exec-local.png used on input line 62.
+<images/exec-local.png, id=8, 499.8675pt x 179.92218pt>
+File: images/exec-local.png Graphic file (type png)
+
+<use images/exec-local.png>
+Package pdftex.def Info: images/exec-local.png used on input line 65.
 (pdftex.def)             Requested size: 332.89723pt x 119.82794pt.
 
-<exec-remota.png, id=9, 500.62032pt x 179.16937pt>
-File: exec-remota.png Graphic file (type png)
- <use exec-remota.png>
-Package pdftex.def Info: exec-remota.png used on input line 69.
+<images/exec-remota.png, id=9, 500.62032pt x 179.16937pt>
+File: images/exec-remota.png Graphic file (type png)
+
+<use images/exec-remota.png>
+Package pdftex.def Info: images/exec-remota.png used on input line 72.
 (pdftex.def)             Requested size: 332.89723pt x 119.14613pt.
 
-Overfull \hbox (4.5813pt too wide) in paragraph at lines 65--72
+Overfull \hbox (4.5813pt too wide) in paragraph at lines 68--75
 []\T1/cmtt/m/n/10 xaveco \T1/cmr/m/n/10 via []\T1/cmtt/m/n/10 ssh\T1/cmr/m/n/10
  , exe-cu-tado com o co-mando []\T1/cmtt/m/n/10 ./client guns.lab.ic.unicamp.br
 \T1/cmr/m/n/10 .
  []
 
-[1 <./exec-local.png>] <netstat.png, id=17, 525.46312pt x 468.24937pt>
-File: netstat.png Graphic file (type png)
+[1 <./images/exec-local.png>]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 80.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 80.
 
-<use netstat.png>
-Package pdftex.def Info: netstat.png used on input line 85.
+<images/multiplos1.png, id=17, 663.98062pt x 469.00218pt>
+File: images/multiplos1.png Graphic file (type png)
+
+<use images/multiplos1.png>
+Package pdftex.def Info: images/multiplos1.png used on input line 84.
+(pdftex.def)             Requested size: 332.89723pt x 235.14459pt.
+
+<images/multiplos2.png, id=18, 645.16031pt x 469.755pt>
+File: images/multiplos2.png Graphic file (type png)
+
+<use images/multiplos2.png>
+Package pdftex.def Info: images/multiplos2.png used on input line 90.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+
+<images/multiplos3.png, id=19, 645.16031pt x 469.755pt>
+File: images/multiplos3.png Graphic file (type png)
+
+<use images/multiplos3.png>
+Package pdftex.def Info: images/multiplos3.png used on input line 96.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+
+<images/multiplos4.png, id=20, 645.16031pt x 469.755pt>
+File: images/multiplos4.png Graphic file (type png)
+
+<use images/multiplos4.png>
+Package pdftex.def Info: images/multiplos4.png used on input line 103.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+
+<images/multiplos5.png, id=21, 645.16031pt x 469.755pt>
+File: images/multiplos5.png Graphic file (type png)
+
+<use images/multiplos5.png>
+Package pdftex.def Info: images/multiplos5.png used on input line 109.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+
+<images/multiplos6.png, id=22, 645.16031pt x 469.755pt>
+File: images/multiplos6.png Graphic file (type png)
+
+<use images/multiplos6.png>
+Package pdftex.def Info: images/multiplos6.png used on input line 115.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+
+<images/multiplos7.png, id=23, 645.16031pt x 469.755pt>
+File: images/multiplos7.png Graphic file (type png)
+
+<use images/multiplos7.png>
+Package pdftex.def Info: images/multiplos7.png used on input line 121.
+(pdftex.def)             Requested size: 332.89723pt x 242.38885pt.
+ [2 <./images/exec-remota.png> <./images/multiplos1.png>] [3 <./images/multiplo
+s2.png> <./images/multiplos3.png>] [4 <./images/multiplos4.png>] [5 <./images/m
+ultiplos5.png> <./images/multiplos6.png>] [6 <./images/multiplos7.png>] <images
+/netstat.png, id=43, 525.46312pt x 468.24937pt>
+File: images/netstat.png Graphic file (type png)
+
+<use images/netstat.png>
+Package pdftex.def Info: images/netstat.png used on input line 134.
 (pdftex.def)             Requested size: 332.89723pt x 296.66342pt.
- <telnet.png, id=18, 524.71031pt x 252.945pt>
-File: telnet.png Graphic file (type png)
+ <images/telnet.png, id=44, 524.71031pt x 252.945pt>
+File: images/telnet.png Graphic file (type png)
 
-<use telnet.png>
-Package pdftex.def Info: telnet.png used on input line 96.
+<use images/telnet.png>
+Package pdftex.def Info: images/telnet.png used on input line 146.
 (pdftex.def)             Requested size: 332.89723pt x 160.4832pt.
- [2 <./exec-remota.png>] [3 <./netstat.png> <./telnet.png>]
-(./relatorio.aux) ) 
+ [7
+
+ <./images/netstat.png>]
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 156.
+
+<images/echo.png, id=48, 517.18219pt x 268.75406pt>
+File: images/echo.png Graphic file (type png)
+ <use images/echo.png>
+Package pdftex.def Info: images/echo.png used on input line 184.
+(pdftex.def)             Requested size: 332.89723pt x 172.99442pt.
+
+[8 <./images/telnet.png>] [9 <./images/echo.png>] (./relatorio.aux) ) 
 Here is how much of TeX's memory you used:
- 4772 strings out of 493311
- 65554 string characters out of 6143651
- 147204 words of memory out of 5000000
- 8154 multiletter control sequences out of 15000+600000
- 11989 words of font info for 31 fonts, out of 8000000 for 9000
+ 5221 strings out of 493308
+ 70265 string characters out of 6143616
+ 164767 words of memory out of 5000000
+ 8589 multiletter control sequences out of 15000+600000
+ 14600 words of font info for 35 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 38i,7n,49p,585b,581s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.
-enc}</usr/share/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share
-/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf-dist/fon
-ts/type1/public/cm-super/sfrm1200.pfb></usr/share/texmf-dist/fonts/type1/public
-/cm-super/sfrm1728.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfti1
-000.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on relatorio.pdf (4 pages, 338251 bytes).
+ 38i,8n,49p,842b,1151s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/shar
+e/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/texmf-dist/fo
+nts/type1/public/cm-super/sfbx1440.pfb></usr/share/texmf-dist/fonts/type1/publi
+c/cm-super/sfrm0600.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm
+0700.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/
+share/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf-dis
+t/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share/texmf-dist/fonts/type1/p
+ublic/cm-super/sfrm1728.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/
+sfti1000.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sftt0800.pfb></
+usr/share/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
+Output written on relatorio.pdf (10 pages, 1534338 bytes).
 PDF statistics:
- 46 PDF objects out of 1000 (max. 8388607)
- 29 compressed objects within 1 object stream
+ 90 PDF objects out of 1000 (max. 8388607)
+ 55 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 21 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 61 words of extra memory for PDF output out of 10000 (max. 10000000)
 

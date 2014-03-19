@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define SERVER_PORT 10101
+#define SERVER_PORT 10101 /* modified to avoid well-known ports restriction */
 #define MAX_LINE 256
 
 int main(int argc, char * argv[])
@@ -53,5 +53,10 @@ int main(int argc, char * argv[])
 		buf[MAX_LINE-1] = '\0';
 		len = strlen(buf) + 1;
 		send(s, buf, len, 0);
+		/* loop added to wait for the echo of the line and print it */
+		while (len = recv(s, buf, sizeof(buf), 0)) {
+			fputs(buf, stdout);
+			if (len) break;
+		}
 	}
 }

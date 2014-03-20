@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #define SERVER_PORT 10101
 #define MAX_PENDING 5
@@ -28,6 +29,8 @@ int main()
 	int so_len;
 	char so_addr[INET_ADDRSTRLEN];
 
+	pid_t child_pid;
+
 	/* setup passive open */
 	if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("simplex-talk: socket");
@@ -45,18 +48,35 @@ if ((bind(s, (struct sockaddr *)&sin, sizeof(sin))) < 0) {
 			perror("simplex-talk: accept");
 			exit(1);
 		}
-		/* get socket information and prints it on the stdout */
-		so_len = sizeof(so);
-		if (getpeername(new_s, (struct sockaddr *)&so, &so_len) < 0) {
-			perror("simplex-talk: getpeername");
-			close(s);
+
+		child_pid = fork();
+		/* check if it forked */
+		if (child_pid < 0) {
+			perror("simplex-talk: fork");
 			exit(1);
 		}
-		inet_ntop(AF_INET, &(so.sin_addr), so_addr, INET_ADDRSTRLEN);
-		printf("IP address: %s; Port number: %d\n", so_addr, ntohs(so.sin_port));
-		while (len = recv(new_s, buf, sizeof(buf), 0)) {
-			fputs(buf, stdout);
+		
+		if (child_pid == 0) {
+			close(s);
+			/* get socket information and prints it on the stdout */
+			so_len = sizeof(so);
+			if (getpeername(new_s, (struct sockaddr *)&so, &so_len) < 0) {
+				perror("simplex-talk: getpeername");
+				close(s);
+				exit(1);
+			}
+			inet_ntop(AF_INET, &(so.sin_addr), so_addr, INET_ADDRSTRLEN);
+			printf("IP address: %s; Port number: %d\n", so_addr, ntohs(so.sin_port));
+	
+			/* rx loop */
+			while (len = recv(new_s, buf, sizeof(buf), 0)) {
+				fputs(buf, stdout);
+			}
+			close(new_s);		
 		}
-		close(new_s);
+		else {
+			close(new_s);
+		}
 	}
+	close(s);
 }

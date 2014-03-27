@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 	hp = gethostbyname(host);
 	if (!hp) {
 		fprintf(stderr, "simplex-talk: unknown host: %s\n", host);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	/* build address data structure */
 	bzero((char *)&sin, sizeof(sin));
@@ -48,26 +48,30 @@ int main(int argc, char * argv[])
 	/* active open */
 	if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("simplex-talk: socket");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		perror("simplex-talk: connect");
 		close(s);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	/* get socket information and prints it on the stdout */
 	so_len = sizeof(so);
 	if (getsockname(s, (struct sockaddr *)&so, &so_len) < 0) {
 		perror("simplex-talk: getsockname");
 		close(s);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	inet_ntop(AF_INET, &(so.sin_addr), so_addr, INET_ADDRSTRLEN);
 	printf("IP address: %s; Port number: %d\n", so_addr, ntohs(so.sin_port));
 	/* main loop: get and send lines of text */
 	while (fgets(buf, sizeof(buf), stdin)) {
+		if (strcmp(buf, "exit\n") == 0) {
+			break;
+		}
 		buf[MAX_LINE-1] = '\0';
 		len = strlen(buf) + 1;
 		send(s, buf, len, 0);
 	}
+	close(s);
 }

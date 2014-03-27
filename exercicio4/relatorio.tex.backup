@@ -141,15 +141,5 @@ for (;;) {
 
 \FloatBarrier
 \section{}
-\paragraph{}Para verificar quais dos lados da conexão entra no estado \verb|TIME_WAIT|, foi feita uma modificação no cliente para ele este encerre a conexão após a entrada da palavra \verb|exit|. Assim, o cliente será o lado que iniciará o encerramento da conexão. O comando para verificação foi \verb|netstat -tun|.
-\begin{figure}[!ht]
-  \caption{Saída do netstat.}
-  \centering
-  \includegraphics[width=117mm]{images/netstat.png}
-  \label{netstat}
-\end{figure}
-\paragraph{}Como visto na figura \ref{netstat}, o lado que inicia o encerramento da conexão que entra em \verb|TIME_WAIT|. Isso é condizente com a máquina de estados do protocolo TCP\footnote{Stevens, W. Richard. UNIX Network Programming. 2nd Edition, pp. 40-41}. O estado \verb|TIME_WAIT| existe garantir o encerramento adequado da conexão TCP. O cliente fica neste estado por duas vezes o MSL (\emph{maximum segment lifetime}), caso o ACK que ele enviou em resposta ao FIN do servidor (note que o cliente inciou o encerramento enviando um FIN ao servidor que foi por este respondido com um ACK seguido de un FIN) não seja entregue a este. O cliente precisa manter o estado da conexão para caso o servidor re-envie seu FIN.
-
-
 
 \end{document}

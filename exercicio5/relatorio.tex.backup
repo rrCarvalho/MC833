@@ -1,0 +1,66 @@
+\documentclass[a4paper,10pt,oneside,final,titlepage,onecolumn]{article}
+
+\usepackage{ucs}
+\usepackage[portuguese]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{placeins}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=bash,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\scriptsize\ttfamily},
+  numbers=none,  
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=3
+}
+
+
+
+\title{Exercício 5 de MC833 --- Programação em Redes de Computadores}
+\author{Raul Rabelo Carvalho, 105607, turma A}
+
+
+
+\begin{document}
+
+
+
+\maketitle
+
+
+
+\section{}
+\paragraph{}O servidor pôde responder com um eco dos treze clientes como mostrado na figura \ref{echo}, pois, na verdade, ele o faz em sequência. A função \verb|select|\footnote{Stevens, W. Richard. Unix Network Programming, volume 1. Second Edition, pp 150-155.} empregada no servidor marca em um vetor de bits (do tipo \verb|fd_set|) as conexões que o \emph{kernel} recebeu (já que, no caso do servidor deste exercício, faz-se somente leituras). As funções \verb|read| e \verb|write| usam a posição no vetor como descritor, já que este inteiro equivale aos descritores que o \emph{kernel} criou. Assim, fazendo uma iteração rápida sobre as posições do vetor marcadas com conexões ativas, o servidor, para efeitos práticos, trata as requisições dos clientes simultaneamente.
+\begin{figure}[!ht]
+  \caption{Servidor respondendo a treze clientes.}
+  \centering
+  \includegraphics[width=117mm]{images/echo.png}
+  \label{echo}
+\end{figure}
+
+
+
+\FloatBarrier
+\section{}
+\paragraph{}Como visto no exercício 4 desta disciplina, um servidor concorrente pode empregar a chamada de sistema \verb|fork| dos sistemas Unix para criar uma cópia própria para tratar de conexões simultâneas. Já um servidor por multiplexação de entrada e/ou saída não faz có
+\begin{lstlisting}
+
+\end{lstlisting}
+
+
+
+\end{document}

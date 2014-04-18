@@ -54,12 +54,17 @@ void pMyError(my_error_t e, const char *function)
 
 
 
+static int msg_seq;
+
+
+
 /* ========================================================================
  * === Pragmas das funções ================================================
  * ======================================================================== */
 
 /* === Funções auxiliares de networking =================================== */
-int connectTCP(char *endIP, char *port);
+int msgSeq(void);
+int connectUDP(char *endIP, char *port);
 
 
 
@@ -76,10 +81,23 @@ int main(int argc, char *argv[])
 
 	int maxfd, rval;
 
+	char msg[BUFLEN];
 	char cmd[BUFLEN];
 	char buf[BUFLEN];
 	int len;
+
 	int i, n;
+
+
+	fd_set tmp_fds;
+	char ack_msg[9];
+	struct timeval tv1;
+
+	tv1.tv_sec = 1;
+	tv1.tv_usec = 0;
+
+
+
 
 	/* verificando argumentos */
 	if (argc < 3) {
@@ -93,7 +111,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	sock = connectTCP(argv[1], argv[2]);
+	sock = connectUDP(argv[1], argv[2]);
 
 	maxfd = fileno(stdin);
 	maxfd = (maxfd < sock) ? sock : maxfd;
@@ -119,20 +137,52 @@ int main(int argc, char *argv[])
 		else if (rval > 0) {
 
 			if (FD_ISSET(fileno(stdin), &rfds1)) {
+
 				memset(cmd, 0, sizeof(cmd));
 				fgets(cmd, BUFLEN, stdin);
 
-				if (send(sock, cmd, strlen(cmd), 0) == -1) {
+				/* encerra o cliente */
+				if (strcmp(cmd, "sair\n") == 0) {
+					break;
+				}
+
+				/* etiqueta a mensagem com o número de sequência */
+				sprintf(msg, "%.6d", msgSeq());
+				strncat(msg, cmd, strlen(cmd));
+
+				if (send(sock, msg, strlen(msg), 0) == -1) {
 					perror("send");
 				}
 
-				if (strcmp(cmd, "sair\n") == 0) {
-					break;
+				FD_ZERO(&tmp_fds);
+
+				while (1) {
+					FD_SET(sock, &tmp_fds);
+					i = select(sock+1, &tmp_fds, NULL, NULL, &tv1);
+
+					if ( i > 0) {
+
+						memset(buf, 0, sizeof(buf));
+						if ((len = recv(sock, buf, 9, 0)) == -1) {
+							perror("recv");
+						}
+
+						sprintf(ack_msg, "ACK%.6d", msg_seq);
+						if (strncmp(ack_msg, buf, (size_t)(9)) == 0) {
+							break;
+						}
+					}
+					else if (i <= 0) {
+						puts("Sem resposta do servidor.");
+						break;
+					}
 				}
 			}
 			else if (FD_ISSET(sock, &rfds1)) {
 				memset(buf, 0, sizeof(buf));
-				len = recv(sock, buf, BUFLEN, 0);
+				if ((len = recv(sock, buf, BUFLEN, 0)) == -1) {
+					perror("recv");
+				}
 
 				if (strcmp(buf, "\n") != 0 || strcmp(buf, "\r") != 0) {
 					printf("%s", buf);
@@ -154,7 +204,25 @@ int main(int argc, char *argv[])
 
 /* === Funções auxiliares de networking =================================== */
 
-int connectTCP(char *endIP, char *port)
+int msgSeq(void)
+/*
+ * desc		:	Retorna um inteiro entre 0 e 999 999 para ser usado como
+ * 				identificador de mensagens.
+ *
+ * params	:	Nenhum.
+ *
+ * output	:	Inteiro (mod 1 000 000).
+ */
+ {
+	if (++msg_seq > 999999) {
+		msg_seq = 0;
+	}
+
+	return msg_seq;
+}
+
+
+int connectUDP(char *endIP, char *port)
 /*
  * desc		:	Conecta a um endereço IP e porta a um socket a ser retornado.
  *
@@ -174,7 +242,7 @@ int connectTCP(char *endIP, char *port)
 	/* estrutura a ser usada para obter um endereço IP */
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;			/* IPv4 */
-	hints.ai_socktype = SOCK_STREAM;	/* TCP */
+	hints.ai_socktype = SOCK_DGRAM;		/* UDP */
 
 	/* obtem a lista ligada com as associações possíveis */
 	if ((status = getaddrinfo(endIP, port, &hints, &servinfo)) != 0) {

@@ -132,16 +132,17 @@ void writeDB(void);
 
 /* === Funções de busca e impressão de informações ======================== */
 int buscar(const int x, const int y, char *categoria);
-void sendBusca(int N, int S);
-void sendInfoID(int id, int S);
-void sendCategorias(int S);
-void votarID(int id, int nota, int S);
+void sendBusca(int N, int S, struct sockaddr *R, int format);
+void sendInfoID(int id, int S, struct sockaddr *R);
+int listarCategorias(void);
+void votarID(int id, int nota, int S, struct sockaddr *R);
 
 /* === Funções auxiliares de networking =================================== */
-int bindTCP(char *port);
+char *sendACK(int S, char *buf, struct sockaddr *R);
+int bindUDP(char *port);
 
 /* === Interpretados de comandos ========================================== */
-int interpretador(char *cmd, int S);
+int interpretador(char *cmd, int S, struct sockaddr *R);
 
 
 
@@ -151,21 +152,16 @@ int interpretador(char *cmd, int S);
 
 int main(int argc, char *argv[])
 {
-	/* variáveis para criação de conexões */
-	int listen_socket, connect_sock;
+	int sock;
 	struct sockaddr_storage remote_st;
 	socklen_t st_len;
-	/* variáveis das informações do socket do cliente */
-	struct sockaddr_in si;
-	socklen_t si_len;
-	/* variáveis para fork de processos */
-	struct sigaction sa;
-	pid_t pid;
 
+	char *cmd;
+	char msg[BUFLEN];
 	char buf[BUFLEN];
 	int len;
 	int i;
-	int cmd = 0;
+	int rval = 0;
 
 	/* verificando argumentos */
 	if (argc < 2) {
@@ -180,78 +176,30 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	/* espera por conexões no listen_socket */
-	listen_socket = bindTCP(argv[1]);
-	if (listen(listen_socket, BACKLOG) == -1) {
-		perror("listen");
-		exit(EXIT_FAILURE);
+	/* faz o bind da porta ao sock */
+	sock = bindUDP(argv[1]);
+
+	st_len = sizeof(remote_st);
+
+    /* main loop */
+	while ((len = recvfrom(sock, buf, sizeof(buf), 0,
+	(struct sockaddr *)&remote_st, &st_len)) != -1) {
+
+		if (len > 0) {
+
+			/* envia uma confirmação de recebimento */
+			cmd = sendACK(sock, buf, (struct sockaddr *)&remote_st);
+
+			/* interpretador de comandos */
+			rval = interpretador(cmd, sock, (struct sockaddr *)&remote_st);
+
+		}
+
+		memset(buf, 0, sizeof(buf));
+
 	}
 
-	/* configurando o handler para encerrar os procesos-zumbis */
-    sa.sa_handler = SIG_DFL;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_NOCLDWAIT;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("sigaction");
-        exit(1);
-    }
-
-    while(1) {
-
-    	/* aceita a conexão de um cliente por um socket novo connect_sock */
-		if ((connect_sock = accept(listen_socket, (struct sockaddr *)&remote_st, &st_len)) < 0) {
-			perror("accept");
-			exit(EXIT_FAILURE);
-		}
-
-		/* faz o fork do processo */
-		pid = fork();
-		if (pid < 0) {
-			perror("fork");
-			exit(EXIT_FAILURE);
-		}
-
-		/* caso o processo seja o filho */
-		if (pid == 0) {
-
-			/* fecha o socket que está esperando por novos clientes */
-			close(listen_socket);
-
-			/* coleta as informações do socket e imprime na stdout */
-			si_len = sizeof(si);
-			if (getpeername(connect_sock, (struct sockaddr *)&si, &si_len) < 0) {
-				perror("getpeername");
-				close(connect_sock);
-				exit(EXIT_FAILURE);
-			}
-			inet_ntop(AF_INET, &(si.sin_addr), buf, INET_ADDRSTRLEN);
-			printf("IP address: %s; Port number: %d\n", buf, ntohs(si.sin_port));
-
-			/* main loop */
-			while (len = recv(connect_sock, buf, sizeof(buf), 0)) {
-
-				/* chamada do interpretador de comandos */
-				if (len > 0) {
-					cmd = interpretador(buf, connect_sock);
-				}
-
-				memset(buf, 0, sizeof(buf));
-
-				/* encerra o processo filho por ordem do cliente */
-				if (cmd == -1) {
-					return 0;
-				}
-
-			}
-
-			close(connect_sock);
-		}
-		/* processo pai fecha sua cópia do socket do cliente */
-		else {
-			close(connect_sock);
-		}
-
-	}
+	close(sock);
 
 	return 0;
 }
@@ -446,13 +394,16 @@ int buscar(const int x, const int y, char *categoria)
 	return out;
 }
 
-void sendBusca(int N, int S)
+void sendBusca(int N, int S, struct sockaddr *R, int format)
 /*
  * desc		:	Envia o ID e o nome de cada estabelecimento retornado por uma
  * 				busca.
  *
  * params	:	1.	Números de resultados da busca.
  * 				2.	Socket pelo qual serão enviados os dados.
+ * 				3.	Informações de rede sobre o cliente.
+ * 				4.	Formato das mensagens: 0 para lista de estabelecimentos
+ * 					ou 1 para lista de categorias.
  *
  * output	:	Nenhuma.
  */
@@ -463,26 +414,36 @@ void sendBusca(int N, int S)
 
 	if (N == 0) {
 		sprintf(buf, "Nenhum estabelecimento encontrado.\n\r");
-		if (send(S, buf, strlen(buf), 0) == -1) {
-			perror("send");
+		if (sendto(S, buf, strlen(buf), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+			perror("sendto");
 		}
 		return;
 	}
 
 	len = 0;
-	sprintf(buf, "( ID ) Nome\n");
+	if (format == 0) {
+		sprintf(buf, "( ID ) Nome\n");
+	}
+	else if (format == 1) {
+		sprintf(buf, "Categorias:\n");
+	}
 	len = strlen(buf);
 
 	j = 0;
 	for (i = 0; i < N; i++) {
 		/* montando mensagens menores que 1024 bytes */
 		if (j <= 2) {
-			sprintf(buf+len, "(%.4d) %s\n", busca[i].id, busca[i].nome);
+			if (format == 0) {
+				sprintf(buf+len, "(%.4d) %s\n", busca[i].id, busca[i].nome);
+			}
+			else if (format == 1) {
+				sprintf(buf+len, " %s\n", busca[i].nome);
+			}
 			len = strlen(buf);
 		}
 		if (j == 2) {
-			if (send(S, buf, strlen(buf), 0) == -1) {
-				perror("send");
+			if (sendto(S, buf, strlen(buf), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+				perror("sendto");
         	}
         	memset(buf, 0, sizeof(buf));
         	len = 0;
@@ -495,21 +456,22 @@ void sendBusca(int N, int S)
 
 	/* se alguma mensagem foi montada mas não enviada, envia */
 	if (j > 0) {
-		if (send(S, buf, strlen(buf), 0) == -1) {
-       		perror("send");
+		if (sendto(S, buf, strlen(buf), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+       		perror("sendto");
        	}
 	}
 
 	free(busca);
 }
 
-void sendInfoID(int id, int S)
+void sendInfoID(int id, int S, struct sockaddr *R)
 /*
  * desc		:	Envia ao socket S uma mensagem contendo todas as informações
  *				do estabelecimento com identificador id.
  *
- * params	:	1.	id do estabelecimento selecionado.
- *				2.	socket para enviar a saída de dados.
+ * params	:	1.	ID do estabelecimento selecionado.
+ *				2.	Socket para enviar a saída de dados.
+ * 				3.	Informações de rede sobre o cliente.
  *
  * output	:	Nenhuma.
  */
@@ -533,16 +495,16 @@ void sendInfoID(int id, int S)
 				lista[i].nome, lista[i].id, lista[i].categoria,
 				lista[i].endereco, lista[i].posx, lista[i].posy,
 				(float)(lista[i].pontuacao / lista[i].votos));
-			if (send(S, buf, strlen(buf), 0) == -1) {
-         		perror("send");
+			if (sendto(S, buf, strlen(buf), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+         		perror("sendto");
         	}
 		}
 	}
 
 	/* caso não encontre o id, envia uma mensagem de erro */
 	if (!exist_id) {
-		if (send(S, error_msg, strlen(error_msg), 0) == -1) {
-         	perror("send");
+		if (sendto(S, error_msg, strlen(error_msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+         	perror("sendto");
         }
 	}
 
@@ -551,14 +513,13 @@ void sendInfoID(int id, int S)
 	lista_len = 0;
 }
 
-void sendCategorias(int S)
+int listarCategorias(void)
 /*
- * desc		:	Envia ao cliente a lista das categorias de estabelecimentos
- * 				existentes.
+ * desc		:	Gera lista das categorias de estabelecimentos existentes.
  *
- * params	:	1.	Socket para enviar a saída de dados.
+ * params	:	Nenhum.
  *
- * output	:	Nenhuma.
+ * output	:	Número de categorias.
  */
 {
 	char buf[BUFLEN];
@@ -568,8 +529,10 @@ void sendCategorias(int S)
 
 	readDB();
 
+	busca = calloc(lista_len, sizeof(res_busca_t));
+
 	/* primeira categoria */
-	strncpy(categorias[0], lista[0].categoria, strlen(lista[0].categoria));
+	strncpy(busca[0].nome, lista[0].categoria, strlen(lista[0].categoria));
 	n = 1;
 
 	/* percorre a lista de estabelecimentos procurando pelas categorias */
@@ -579,37 +542,32 @@ void sendCategorias(int S)
 
 		/* verifica se a categoria corrente já foi encontrada */
 		for (j = 0; j < n; j++) {
-			if (strcmp(categorias[j], lista[i].categoria) == 0) {
+			if (strcmp(busca[j].nome, lista[i].categoria) == 0) {
 				igual = TRUE;
 			}
 		}
 
 		/* se a categoria corrente é nova, insere no resultado */
 		if (igual == FALSE) {
-			sprintf(categorias[n++], "%s", lista[i].categoria);
-		}
-	}
-
-	/* envia a lista das categorias pelo socket S */
-	for (i = 0; i < n; i++) {
-		sprintf(buf, "%s\n\r", categorias[i]);
-		if (send(S, buf, strlen(buf), 0) == -1) {
-			perror("send");
+			sprintf(busca[n++].nome, "%s", lista[i].categoria);
 		}
 	}
 
 	writeDB();
 	free(lista);
 	lista_len = 0;
+
+	return n;
 }
 
-void votarID(int id, int nota, int S)
+void votarID(int id, int nota, int S, struct sockaddr *R)
 /*
  * desc		:	Computa o voto dado em um estabelecimento.
  *
  * params	:	1.	ID do estabelecimento selecionado.
  * 				2.	Nota a ser dada ao estabelecimento.
  *				3.	Socket para enviar a saída de dados.
+ * 				4.	Informações de rede sobre o cliente.
  *
  * output	:	Nenhuma.
  */
@@ -633,16 +591,16 @@ void votarID(int id, int nota, int S)
 
 			/* prepara a mensagem e envia por S */
 			sprintf(buf, "Nota %d dada a %s.\n\r", nota, lista[i].nome);
-			if (send(S, buf, strlen(buf), 0) == -1) {
-         		perror("send");
+			if (sendto(S, buf, strlen(buf), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+         		perror("sendto");
         	}
 		}
 	}
 
 	/* caso não encontre o id, envia uma mensagem de erro */
 	if (!exist_id) {
-		if (send(S, error_msg, strlen(error_msg), 0) == -1) {
-         	perror("send");
+		if (sendto(S, error_msg, strlen(error_msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+         	perror("sendto");
         }
 	}
 
@@ -655,7 +613,33 @@ void votarID(int id, int nota, int S)
 
 /* === Funções auxiliares de networking =================================== */
 
-int bindTCP(char *port)
+char *sendACK(int S, char *buf, struct sockaddr *R)
+/*
+ * desc		:	Envia uma mensagem de confirmação de recebimento para
+ * 				o cliente.
+ *
+ * params	:	1.	Socket para envio da mensagem.
+ * 				2.	String com a mensagem recebida.
+ * 				3.	Informações de rede sobre o cliente.
+ *
+ * output	:	Apontador para o primeiro caracter do conteúdo da mensagem
+ * 				recebida.
+ */
+{
+	char msg[BUFLEN];
+
+	sprintf(msg, "ACK");
+	strncat(msg, buf, (size_t)(6));
+
+	if (sendto(S, msg, strlen(msg), 0, R,
+	sizeof(struct sockaddr_storage)) == -1) {
+		perror("sendto");
+	}
+
+	return &buf[6];
+}
+
+int bindUDP(char *port)
 /*
  * desc		:	Associa a porta dada a um socket a ser retornado.
  *
@@ -675,7 +659,7 @@ int bindTCP(char *port)
 	/* estrutura a ser usada para obter um endereço IP */
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;			/* IPv4 */
-	hints.ai_socktype = SOCK_STREAM;	/* TCP */
+	hints.ai_socktype = SOCK_DGRAM;		/* UDP */
 	hints.ai_flags = AI_PASSIVE;
 
 	/* obtem a lista ligada com as associações possíveis */
@@ -725,12 +709,13 @@ int bindTCP(char *port)
 
 /* === Interpretados de comandos ========================================== */
 
-int interpretador(char *cmd, int S)
+int interpretador(char *cmd, int S, struct sockaddr *R)
 /*
  * desc		:	Interpretador dos comandos recebidos pelo servidor.
  *
  * params	:	1.	Buffer contendo a linha de comando.
  * 				2.	Socket para o qual respostas são enviadas.
+ * 				3.	Informações de rede sobre o cliente.
  *
  * output	:	0 para continuar e -1 para encerrar a conexão.
  */
@@ -773,8 +758,8 @@ int interpretador(char *cmd, int S)
 			sprintf(tmp, "%d", POSLIMMAX);
 			strncat(msg, tmp, strlen(tmp));
 			strcat(msg, ".\n\r");
-			if (send(S, msg, strlen(msg), 0) == -1) {
-				perror("send");
+			if (sendto(S, msg, strlen(msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+				perror("sendto");
 			}
 			cli_posx = -1;
 			cli_posy = -1;
@@ -789,15 +774,16 @@ int interpretador(char *cmd, int S)
 			sprintf(tmp, "%d", cli_posy);
 			strncat(msg, tmp, strlen(tmp));
 			strcat(msg, ").\n\r");
-			if (send(S, msg, strlen(msg), 0) == -1) {
-				perror("send");
+			if (sendto(S, msg, strlen(msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+				perror("sendto");
 			}
 		}
 	}
 	else
 	/* requisitando a lista das categorias existentes */
 	if (strcmp(tok, "categorias") == 0) {
-		sendCategorias(S);
+		i = listarCategorias();
+		sendBusca(i, S, R, 1);
 	}
 	else
 	/* requisitando alguma listagem de estabelecimentos */
@@ -811,7 +797,7 @@ int interpretador(char *cmd, int S)
 		if (strcmp(tok, "todos") == 0) {
 
 			i = buscar(-1, -1, NULL);
-			sendBusca(i, S);
+			sendBusca(i, S, R, 0);
 		}
 		else
 		if (strcmp(tok, "perto") == 0) {
@@ -824,13 +810,13 @@ int interpretador(char *cmd, int S)
 
 				if (cli_posx == -1 || cli_posy == -1) {
 					strcpy(msg, "Informe sua posição antes.\n\r");
-					if (send(S, msg, strlen(msg), 0) == -1) {
-						perror("send");
+					if (sendto(S, msg, strlen(msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+						perror("sendto");
 					}
 				}
 				else {
 					i = buscar(cli_posx, cli_posy, NULL);
-					sendBusca(i, S);
+					sendBusca(i, S, R, 0);
 				}
 			}
 			else
@@ -844,13 +830,13 @@ int interpretador(char *cmd, int S)
 
 				if (cli_posx == -1 || cli_posy == -1) {
 					strcpy(msg, "Informe sua posição antes.\n\r");
-					if (send(S, msg, strlen(msg), 0) == -1) {
-						perror("send");
+					if (sendto(S, msg, strlen(msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+						perror("sendto");
 					}
 				}
 				else {
 					i = buscar(cli_posx, cli_posy, tok);
-					sendBusca(i, S);
+					sendBusca(i, S, R, 0);
 				}
 			}
 		}
@@ -863,7 +849,7 @@ int interpretador(char *cmd, int S)
 			}
 
 			i = buscar(-1, -1, tok);
-			sendBusca(i, S);
+			sendBusca(i, S, R, 0);
 		}
 	}
 	else
@@ -872,7 +858,7 @@ int interpretador(char *cmd, int S)
 		if ((tok = strtok(NULL, " ,")) != NULL) {
 			id = atoi(tok);
 		}
-		sendInfoID(id, S);
+		sendInfoID(id, S, R);
 	}
 	else
 	/* votando no id */
@@ -894,12 +880,12 @@ int interpretador(char *cmd, int S)
 		/* tratamento de erro para nota fora do intervalo */
 		if (0 > nota || nota > 10 ) {
 			sprintf(msg, "Nota deve estar entre 0 e 10.\n\r");
-			if (send(S, msg, strlen(msg), 0) == -1) {
-				perror("send");
+			if (sendto(S, msg, strlen(msg), 0, R, sizeof(struct sockaddr_storage)) == -1) {
+				perror("sendto");
 			}
 		}
 
-		votarID(id, nota, S);
+		votarID(id, nota, S, R);
 	}
 	else
 	/* requisitando encerramento da conexão */

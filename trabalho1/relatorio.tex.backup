@@ -50,21 +50,9 @@
 \paragraph{}O sistema neste Trabalho utiliza um modelo de cliente/servidor, no qual existe um servidor de informação que acessa e processa os dados dos estabelecimentos cadastrados e um conjunto de clientes que requerem parte ou a totalidade dos dados para serem exibidos aos usuários.
 \paragraph{}O sistema aceita comandos do usuário pelo \emph{software} cliente. Os comandos são:
 \begin{description}
- \item[posicao <x>,<y>] --- informa a posição do usuário ao servidor.
- \item[posicao <x> <y>] --- idem o comando anterior.
- \item[categorias] --- exibe uma lista com os nomes das categorias de estabelecimentos existentes no sistema.
- \item[listar todos] --- exibe uma lista com o identificador (\emph{ID}) e nome de todos os estabelecimentos.
- \item[buscar todos] --- idem o comando anterior.
- \item[listar perto todos] --- exibe uma lista com o \emph{ID} e o nome dos estabelecimentos a menos de 100m da posição atual do usuário.
- \item[buscar perto todos] --- idem o comando anterior.
- \item[listar perto categoria <categoria>] --- exibe uma lista com o \emph{ID} e o nome dos estabelecimento a menos de 100 metros da posição atual do usuário e que sejam da categoria \verb|<categoria>|.
- \item[listar perto categoria <categoria>] --- idem o comando anterior.
- \item[listar categoria <categoria>] --- exibe uma lista com o \emph{ID} e o nome dos estabelecimentos da categoria \verb|<categoria>|.
- \item[buscar categoria <categoria>] --- idem o comando anterior.
- \item[info <ID>] --- exibe as informações do estabelecimento com \emph{ID} \verb|<ID>|.
- \item[votar <ID> <nota>] --- registra nas informações do estabelecimento com \emph{ID} \verb|<ID>| uma nota (inteiro \verb|<nota>| de 1 a 10) dada pelo usuário.
- \item[sair] --- encerra o cliente.
+ \item
 \end{description}
+
 
 \subsection{Caso de uso: buscar por um estabelecimento próximo de uma categoria específica}
 \begin{description}
@@ -76,10 +64,10 @@
   \item Informar ao servidor a posição atual do cliente: \verb|posicao x,y|.
   \item Listar as categorias de estabelecimentos disponíveis: \verb|categorias|.
   \item Listar os estabelecimentos próximos da posição atual na categoria desejada: \verb|listar perto categoria <categoria>|.
-  \item Exibir as informações do estabelecimento escolhido: \verb|info <ID>|.
+  \item Exibir as informações do estabelecimento escolhido: \verb|info <id>|.
   \item Encerrar o cliente: \verb|sair|.
  \end{enumerate}
- \item[Extenção:] \hfill \\ Após o passo 5, o usuário pode dar uma nota ao estabelecimento: \verb|votar <ID> <nota>|.
+ \item[Extenção:] \hfill \\ Após o passo 5, o usuário pode dar uma nota ao estabelecimento: \verb|votar <id> <nota>.
 \end{description}
 
 \subsection{Caso de uso: buscar por um estabelecimento próximo}
@@ -91,10 +79,10 @@
   \item Executar o cliente com os argumentos endereço IP e porta do servidor.
   \item Informar ao servidor a posição atual do cliente: \verb|posicao x,y|.
   \item Listar os estabelecimentos próximos da posição atual: \verb|listar perto todos|.
-  \item Exibir as informações do estabelecimento escolhido: \verb|info <ID>|.
+  \item Exibir as informações do estabelecimento escolhido: \verb|info <id>|.
   \item Encerrar o cliente: \verb|sair|.
  \end{enumerate}
- \item[Extenção:] \hfill \\ Após o passo 4, o usuário pode dar uma nota ao estabelecimento: \verb|votar <ID> <nota>|.
+ \item[Extenção:] \hfill \\ Após o passo 4, o usuário pode dar uma nota ao estabelecimento: \verb|votar <id> <nota>.
 \end{description}
 
 \subsection{Caso de uso: buscar por um estabelecimento de uma categoria específica}
@@ -106,10 +94,10 @@
   \item Executar o cliente com os argumentos endereço IP e porta do servidor.
   \item Listar as categorias de estabelecimentos disponíveis: \verb|categorias|.
   \item Listar os estabelecimentos na categoria desejada: \verb|listar categoria <categoria>|.
-  \item Exibir as informações do estabelecimento escolhido: \verb|info <ID>|.
+  \item Exibir as informações do estabelecimento escolhido: \verb|info <id>|.
   \item Encerrar o cliente: \verb|sair|.
  \end{enumerate}
- \item[Extenção:] \hfill \\ Após o passo 4, o usuário pode dar uma nota ao estabelecimento: \verb|votar <ID> <nota>|.
+ \item[Extenção:] \hfill \\ Após o passo 4, o usuário pode dar uma nota ao estabelecimento: \verb|votar <id> <nota>.
 \end{description}
 
 \subsection{Caso de uso: listar todos os estabelecimentos}
@@ -124,10 +112,11 @@
  \end{enumerate}
  \item[Extenção:] \hfill \\ Após o passo 2, o usuário pode:
  \begin{itemize}
-  \item Exibir as informações de um estabelecimento: \verb|info <ID>|.
-  \item Dar uma nota a um estabelecimento: \verb|votar <ID> <nota>|.
+  \item Exibir as informações de um estabelecimento: \verb|info <id>|.
+  \item Dar uma nota a um estabelecimento: \verb|votar <id> <nota>|.
  \end{itemize}
 \end{description}
+
 
 
 
@@ -146,9 +135,12 @@
  \item[votos] \hfill \\ (Inteiro.) O total de vezes que o estabelecimento recebeu uma nota.
 \end{description}
 \paragraph{}Todos os inteiros são inteiros com sinal (apesar de que nenhum dos campos necessita armazenar valores negativos) e os vetores de caracteres têm todos comprimento máximo de 256 posições. Foi escolhido dar um tamanho máximo para esses campos, pois torna a implementação mais simples e menos propensa a erros; além disso, bancos de dados comumente trabalham com campos de tamanho fixo.
-\paragraph{}Um vetor do tipo \verb|item_t| pode empregado para guardar na memória para uso pelo servidor uma parte ou a totalidade (como é o caso da implementação feita para este Trabalho) do conjunto de estabelecimentos cadastrados.
-\paragraph{}Para o armazenamento permanente dos dados em disco, foi usado um arquivo de texto simples contendo por linha as informações de um estabelecimento, com cada campo separado por um ponto-e-vírgula. A ordem dos campos é a mesma da lista acima. A única exceção é a primeira linha que contém somente um inteiro com o número de estabelecimentos contidos no arquivo. É importante que esteve número esteja correto, pois o servidor irá ignorar qualquer entrada além da quantidade dada na primeira linha do arquivo, e irá encerrar com erro se o número de entradas for menor que esta quantidade.
-\paragraph{}Outra estrutura de dados empregada pelo servidor é a estrutura do tipo \verb|res_busca_t| que contém dois campos: um inteiro para guardar identificadores e um vetor de caracteres (também com 256 posições) para armazenar nomes. Um vetor deste tipo é usado para passar o resultado de buscas sobre o conjunto de estabelecimentos para as funções de impressão e comunicação do servidor.
+
+Um vetor do tipo \verb|item_t| pode empregado para guardar na memória para uso pelo servidor uma parte ou a totalidade (como é o caso da implementação feita para este Trabalho) do conjunto de estabelecimentos cadastrados.
+
+Para o armazenamento permanente dos dados em disco, foi usado um arquivo de texto simples contendo por linha as informações de um estabelecimento, com cada campo separado por um ponto-e-vírgula. A ordem dos campos é a mesma da lista acima. A única exceção é a primeira linha que contém somente um inteiro com o número de estabelecimentos contidos no arquivo. É importante que esteve número esteja correto, pois o servidor irá ignorar qualquer entrada além da quantidade dada na primeira linha do arquivo, e irá encerrar com erro se o número de entradas for menor que esta quantidade.
+
+Outra estrutura de dados empregada pelo servidor é a estrutura do tipo \verb|res_busca_t| que contém dois campos: um inteiro para guardar identificadores e um vetor de caracteres (também com 256 posições) para armazenar nomes. Um vetor deste tipo é usado para passar o resultado de buscas sobre o conjunto de estabelecimentos para as funções de impressão e comunicação do servidor.
 
 
 

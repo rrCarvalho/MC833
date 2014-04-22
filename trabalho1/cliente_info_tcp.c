@@ -76,6 +76,8 @@ int main(int argc, char *argv[])
 
 	int maxfd, rval;
 
+	bool_t server_ready;
+
 	char cmd[BUFLEN];
 	char buf[BUFLEN];
 	int len;
@@ -108,6 +110,8 @@ int main(int argc, char *argv[])
 
 	memset(buf, 0, sizeof(buf));
 
+	server_ready = TRUE;
+
 	while (1) {
 
 		rfds1 = rfds0;
@@ -118,13 +122,15 @@ int main(int argc, char *argv[])
 		}
 		else if (rval > 0) {
 
-			if (FD_ISSET(fileno(stdin), &rfds1)) {
+			if (FD_ISSET(fileno(stdin), &rfds1) && server_ready) {
 				memset(cmd, 0, sizeof(cmd));
 				fgets(cmd, BUFLEN, stdin);
 
 				if (send(sock, cmd, strlen(cmd), 0) == -1) {
 					perror("send");
 				}
+
+				server_ready = FALSE;
 
 				if (strcmp(cmd, "sair\n") == 0) {
 					break;
@@ -134,7 +140,10 @@ int main(int argc, char *argv[])
 				memset(buf, 0, sizeof(buf));
 				len = recv(sock, buf, BUFLEN, 0);
 
-				if (strcmp(buf, "\n") != 0 || strcmp(buf, "\r") != 0) {
+				if (strstr(buf, "SERVER_READY\n\r") != NULL) {
+					server_ready = TRUE;
+				}
+				else if (strcmp(buf, "\n") != 0 || strcmp(buf, "\r") != 0) {
 					printf("%s", buf);
 				}
 			}

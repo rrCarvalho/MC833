@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 
 	int i, n;
 
+	bool_t server_ready;
 
 	fd_set tmp_fds;
 	char ack_msg[9];
@@ -95,7 +96,6 @@ int main(int argc, char *argv[])
 
 	tv1.tv_sec = 1;
 	tv1.tv_usec = 0;
-
 
 
 
@@ -126,6 +126,8 @@ int main(int argc, char *argv[])
 
 	memset(buf, 0, sizeof(buf));
 
+	server_ready = TRUE;
+
 	while (1) {
 
 		rfds1 = rfds0;
@@ -136,7 +138,7 @@ int main(int argc, char *argv[])
 		}
 		else if (rval > 0) {
 
-			if (FD_ISSET(fileno(stdin), &rfds1)) {
+			if (FD_ISSET(fileno(stdin), &rfds1) && server_ready) {
 
 				memset(cmd, 0, sizeof(cmd));
 				fgets(cmd, BUFLEN, stdin);
@@ -156,6 +158,7 @@ int main(int argc, char *argv[])
 
 				FD_ZERO(&tmp_fds);
 
+				/* espera pelo ACK do servidor */
 				while (1) {
 					FD_SET(sock, &tmp_fds);
 					i = select(sock+1, &tmp_fds, NULL, NULL, &tv1);
@@ -177,6 +180,9 @@ int main(int argc, char *argv[])
 						break;
 					}
 				}
+
+				server_ready = FALSE;
+
 			}
 			else if (FD_ISSET(sock, &rfds1)) {
 				memset(buf, 0, sizeof(buf));
@@ -184,7 +190,10 @@ int main(int argc, char *argv[])
 					perror("recv");
 				}
 
-				if (strcmp(buf, "\n") != 0 || strcmp(buf, "\r") != 0) {
+				if (strstr(buf, "SERVER_READY\n\r") != NULL) {
+					server_ready = TRUE;
+				}
+				else if (strcmp(buf, "\n") != 0 || strcmp(buf, "\r") != 0) {
 					printf("%s", buf);
 				}
 			}

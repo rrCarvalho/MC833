@@ -140,6 +140,7 @@ void votarID(int id, int nota, int S, struct sockaddr *R);
 /* === Funções auxiliares de networking =================================== */
 char *sendACK(int S, char *buf, struct sockaddr *R);
 int bindUDP(char *port);
+void serverReady(int S, struct sockaddr *R);
 
 /* === Interpretados de comandos ========================================== */
 int interpretador(char *cmd, int S, struct sockaddr *R);
@@ -196,6 +197,8 @@ int main(int argc, char *argv[])
 		}
 
 		memset(buf, 0, sizeof(buf));
+
+		serverReady(sock, (struct sockaddr *)&remote_st);
 
 	}
 
@@ -705,6 +708,19 @@ int bindUDP(char *port)
 	return socket_fd;
 }
 
+void serverReady(int S, struct sockaddr *R)
+{
+	char msg[MAXSTRLEN];
+
+	memset(msg, 0, sizeof(msg));
+	sprintf(msg, "SERVER_READY\n\r");
+
+	if (sendto(S, msg, strlen(msg), 0, R,
+	sizeof(struct sockaddr_storage)) == -1) {
+		perror("sendto");
+	}
+}
+
 
 
 /* === Interpretados de comandos ========================================== */
@@ -884,8 +900,9 @@ int interpretador(char *cmd, int S, struct sockaddr *R)
 				perror("sendto");
 			}
 		}
-
-		votarID(id, nota, S, R);
+		else {
+			votarID(id, nota, S, R);
+		}
 	}
 	else
 	/* requisitando encerramento da conexão */

@@ -139,6 +139,7 @@ void votarID(int id, int nota, int S);
 
 /* === Funções auxiliares de networking =================================== */
 int bindTCP(char *port);
+void serverReady(int S);
 
 /* === Interpretados de comandos ========================================== */
 int interpretador(char *cmd, int S);
@@ -231,17 +232,14 @@ int main(int argc, char *argv[])
 			while (len = recv(connect_sock, buf, sizeof(buf), 0)) {
 
 				/* chamada do interpretador de comandos */
-				if (len > 0) {
-					cmd = interpretador(buf, connect_sock);
-				}
-
-				memset(buf, 0, sizeof(buf));
+				cmd = interpretador(buf, connect_sock);
 
 				/* encerra o processo filho por ordem do cliente */
 				if (cmd == -1) {
 					return 0;
 				}
 
+				serverReady(connect_sock);
 			}
 
 			close(connect_sock);
@@ -721,6 +719,17 @@ int bindTCP(char *port)
 	return socket_fd;
 }
 
+void serverReady(int S)
+{
+	char msg[MAXSTRLEN];
+
+	memset(msg, 0, sizeof(msg));
+	sprintf(msg, "SERVER_READY\n\r");
+	if (send(S, msg, strlen(msg), 0) == -1) {
+		perror("send");
+	}
+}
+
 
 
 /* === Interpretados de comandos ========================================== */
@@ -898,8 +907,9 @@ int interpretador(char *cmd, int S)
 				perror("send");
 			}
 		}
-
-		votarID(id, nota, S);
+		else {
+			votarID(id, nota, S);
+		}
 	}
 	else
 	/* requisitando encerramento da conexão */

@@ -95,7 +95,7 @@ const char* my_error_desc[] =
 {
     "",
     "usage: ./servidor_info_tcp <port number>",
-    "error: port number must be between 1 and 1024",
+    "error: port number must be between 1 and 8000",
     "error: database constains less rows than specified",
     "error: failed to bind",
     "error: vector 'busca' is not set",
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
 	/* verificação da porta usada: a porta deve ser well known */
 	i = atoi(argv[1]);
-	if (0 >= i && i > 1024) {
+	if (0 >= i && i > 8000) {
 		pMyError(PORT_OUT_RANGE, __func__);
 		exit(EXIT_FAILURE);
 	}
@@ -457,7 +457,7 @@ void sendBusca(int N, int S)
 {
 	char buf[BUFLEN];
 	int len;
-	int i, j;
+	int i;
 
 	if (N == 0) {
 		sprintf(buf, "Nenhum estabelecimento encontrado.\n\r");
@@ -469,33 +469,17 @@ void sendBusca(int N, int S)
 
 	len = 0;
 	sprintf(buf, "( ID ) Nome\n");
-	len = strlen(buf);
-
-	j = 0;
-	for (i = 0; i < N; i++) {
-		/* montando mensagens menores que 1024 bytes */
-		if (j <= 2) {
-			sprintf(buf+len, "(%.4d) %s\n", busca[i].id, busca[i].nome);
-			len = strlen(buf);
-		}
-		if (j == 2) {
-			if (send(S, buf, strlen(buf), 0) == -1) {
-				perror("send");
-        	}
-        	memset(buf, 0, sizeof(buf));
-        	len = 0;
-        	j = 0;
-		}
-		else {
-			j++;
-		}
+	if (send(S, buf, strlen(buf), 0) == -1) {
+		perror("send");
 	}
+	memset(buf, 0, sizeof(buf));
 
-	/* se alguma mensagem foi montada mas não enviada, envia */
-	if (j > 0) {
+	for (i = 0; i < N; i++) {
+		sprintf(buf, "(%.4d) %s\n", busca[i].id, busca[i].nome);
 		if (send(S, buf, strlen(buf), 0) == -1) {
-       		perror("send");
-       	}
+			perror("send");
+        }
+        memset(buf, 0, sizeof(buf));
 	}
 
 	free(busca);

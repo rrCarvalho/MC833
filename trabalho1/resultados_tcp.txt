@@ -1,0 +1,117 @@
+>>> 5 consultas <<<
+
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test05.bat > out05.txt
+
+real    0m0.826s
+user    0m0.113s
+sys     0m0.710s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test05.bat > out05.txt
+
+real    0m0.820s
+user    0m0.083s
+sys     0m0.733s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test05.bat > out05.txt
+
+real    0m0.824s
+user    0m0.087s
+sys     0m0.733s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test05.bat > out05.txt
+
+real    0m0.865s
+user    0m0.120s
+sys     0m0.740s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test05.bat > out05.txt
+
+real    0m0.833s
+user    0m0.080s
+sys     0m0.750s
+
+
+
+>>> 10 consultas <<<
+
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test10.bat > out10.txt
+
+real    0m1.683s
+user    0m0.220s
+sys     0m1.460s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test10.bat > out10.txt
+
+real    0m1.744s
+user    0m0.223s
+sys     0m1.520s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test10.bat > out10.txt
+
+real    0m1.918s
+user    0m0.183s
+sys     0m1.733s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test10.bat > out10.txt
+
+real    0m1.689s
+user    0m0.160s
+sys     0m1.527s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test10.bat > out10.txt
+
+real    0m1.673s
+user    0m0.247s
+sys     0m1.423s
+
+
+
+>>> 20 consultas <<<
+
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test20.bat > out20.txt
+
+real    0m3.384s
+user    0m0.507s
+sys     0m2.877s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test20.bat > out20.txt
+
+real    0m3.453s
+user    0m0.483s
+sys     0m2.970s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test20.bat > out20.txt
+
+real    0m3.387s
+user    0m0.403s
+sys     0m2.983s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test20.bat > out20.txt
+
+real    0m3.447s
+user    0m0.457s
+sys     0m2.987s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test20.bat > out20.txt
+
+real    0m3.359s
+user    0m0.383s
+sys     0m2.973s
+
+
+
+>>> 40 consultas <<<
+
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test40.bat > out40.txt
+
+real    0m6.779s
+user    0m0.893s
+sys     0m5.890s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test40.bat > out40.txt
+
+real    0m7.031s
+user    0m0.903s
+sys     0m6.130s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test40.bat > out40.txt
+
+real    0m6.913s
+user    0m0.917s
+sys     0m6.000s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test40.bat > out40.txt
+
+real    0m6.756s
+user    0m0.917s
+sys     0m5.843s
+rrcarvalho@Tarkin ~/MC833/trabalho1 $ time ./cliente_info_tcp 10.17.23.105 23 < test40.bat > out40.txt
+
+real    0m6.823s
+user    0m0.910s
+sys     0m5.917s

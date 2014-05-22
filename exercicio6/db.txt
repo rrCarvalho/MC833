@@ -1,0 +1,23 @@
+21
+0001;45;34;cafe;Café Bruxelas;Rua das Acácias, 34;419;46
+0002;45;600;cafe;Taubaté Café;Avenida Teixeira Lopes, 45;2;20
+0003;4;654;cafe;Manhã na Fazenda;Ladeira Alexandre Menezes, 394;3;19
+0004;672;654;cafe;Starbucks;Parque Dom João, 3456;4;18
+0005;453;54;padaria;Padaria Germânica;Rua José Ferreira, 12;5;17
+0006;27;5;padaria;Pão Quente;Praça da República, 98;6;16
+0007;370;546;padaria;Panificadora Santa Genebra;Rua Franco Moreira, 499;7;15
+0008;884;987;padaria;Astória Pães;Rua Carlos Gomes, 333;8;14
+0009;57;16;sorveteria;Sorveteria Polar;Avenida Grã Colômbia, 11;9;13
+0010;674;515;sorveteria;Floco de Neve Sorvetes;Rua José da Silva, 123;10;12
+0011;654;455;sorveteria;Gelatto;Avenida Garibaldi, 67;11;11
+0012;735;555;restaurante;Panela de Pedra;Rua das Acácias, 600;12;10
+0013;654;88;restaurante;Antoniette;Alameda dos Jacobinos, 89;13;9
+0014;465;331;restaurante;Trem de Minas;Rua dos Emboabas, 1450;14;8
+0015;54;942;restaurante;Gordon's;Rua Roxo Pereira, 4422;15;7
+0016;637;154;restaurante;The Fat Duck;Rua São Francisco, 294;16;6
+0017;19;415;lanchonete;McDowell's;Rua Cláudio Germânico, 4154;17;5
+0018;645;455;lanchonete;Lanchonete da Bia;Rua Marechal Deodoro, 322;18;4
+0019;21;978;lanchonete;Pé Sujo Lanches;Alameda Grouxo Marx, 698;19;3
+0020;984;1;pizzaria;Don Giovanni Pizzeria;Alameda da Ponte, 1745;20;2
+0021;54;477;pizzaria;Pizzaria Aurora;Rua Alarico, 109;22;2
+

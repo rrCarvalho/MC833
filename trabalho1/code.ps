@@ -1,0 +1,5791 @@
+%!PS-Adobe-3.0
+%%Title: servidor_info_tcp.c, cliente_info_tcp.c, servidor_info_udp.c, cliente_info_udp.c
+%%For: 
+%%Creator: a2ps version 4.14
+%%CreationDate: Wed Apr 30 02:42:17 2014
+%%BoundingBox: 24 24 588 768
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 20
+%%PageOrder: Ascend
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 612 def
+/sw 792 def
+/llx 24 def
+/urx 768 def
+/ury 588 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 7.493857 def
+/cw 4.496314 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   522.321860 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <unistd.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <string.h>) p n
+(#include) K
+( <sys/types.h>) p n
+(#include) K
+( <sys/socket.h>) p n
+(#include) K
+( <netinet/in.h>) p n
+(#include) K
+( <netdb.h>) p n
+(#include) K
+( <arpa/inet.h>) p n
+(#include) K
+( <sys/wait.h>) p n
+(#include) K
+( <signal.h>) p n
+() N
+() N
+(/*) c n
+( * DBFILENAME \303\251 o nome do arquivo com os dados dos estabelecimentos.) N
+( *) N
+( * O arquivo guarda na primeira linha o n\303\272mero de estabelecimentos existentes) N
+( * e nas linhas seguintes os dados de cada estabelecimento, um por linha,) N
+( * separado por ponto-e-v\303\255rgula. O arquivo deve ter uma linha em branco no) N
+( * final.) N
+( *) N
+( * Os dados s\303\243o:) N
+( * ) S 8 T (id;x;y;categoria;nome;endere\303\247o;pontuacao;votos) N
+( * onde:) N
+( * ) S 8 T (- 'id' \303\251 um n\303\272mero de quatro d\303\255gitos;) N
+( * ) S 8 T (- 'x' \303\251 a coordenada x \(0-1000\);) N
+( * ) S 8 T (- 'y' \303\251 a coordenada y \(0-1000\);) N
+( * ) S 8 T (- 'categoria' \303\251 uma string com a categoria do estabelecimento;) N
+( * ) S 8 T (- 'nome' \303\251 uma string com o nome do estabelecimento;) N
+( * ) S 8 T (- 'endereco' \303\251 uma string com o endere\303\247o;) N
+( * ) S 8 T (- 'pontuacao' \303\251 a soma das notas das ao estabelecimento;) N
+( *  - 'votos' \303\251 a quantidade de notas recebidas.) N
+( *) N
+( * As strings tem comprimento m\303\241ximo de 256 caracteres.) N
+( */) N
+(#define) K
+( DBFILENAME ") p
+(db.csv) str
+(") p n
+(/* os limites das coordenaras de posicionamento */) c n
+(#define) K
+( POSLIMMAX 1000) p n
+(#define) K
+( POSLIMMIN 0) p n
+(/* tamanho do backlog da fun\303\247\303\243o listen */) c n
+(#define) K
+( BACKLOG 100) p n
+(/* n\303\272mero m\303\241ximo de estabelecimentos na lista */) c n
+(#define) K
+( ITEMLIM 8000) p n
+(/* tamanho m\303\241ximo das strings usadas */) c n
+(#define) K
+( BUFLEN 1024) p n
+(#define) K
+( MAXSTRLEN 256) p n
+() N
+() N
+() N
+(/* === Tipos auxiliares =================================================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k n
+({) p n
+() S 8 T (FALSE = 0,) N
+() S 8 T (TRUE = 1) N
+(} bool_t;) N
+() N
+() N
+() N
+(/* === Estrutura de dados dos estabelecimentos ============================ */) c n
+() p n
+(typedef) K
+( ) p
+(struct) k
+( item {) p n
+() S 8 T () S
+(int) k
+( id;) p n
+() S 8 T () S
+(int) k
+( posx;) p n
+() S 8 T () S
+(int) k
+( posy;) p n
+() S 8 T () S
+(char) k
+( categoria[MAXSTRLEN];) p n
+() S 8 T () S
+(char) k
+( nome[MAXSTRLEN];) p n
+() S 8 T () S
+(char) k
+( endereco[MAXSTRLEN];) p n
+(servidor_info_tcp.c) (Page 1/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S
+(int) k
+( pontuacao;) p n
+() S 8 T () S
+(int) k
+( votos;) p n
+(} item_t;) N
+() N
+(typedef) K
+( ) p
+(struct) k
+( res_busca {) p n
+() S 8 T () S
+(int) k
+( id;) p n
+() S 8 T () S
+(char) k
+( nome[MAXSTRLEN];) p n
+(} res_busca_t;) N
+() N
+() N
+() N
+(/* === Ferramentas para tratamento de erros =============================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k
+( {) p n
+(    NO_ERROR = 0,) N
+(    USAGE_ERROR,) N
+(    PORT_OUT_RANGE,) N
+(    DB_FEWER_ROWS,) N
+(    BIND_ERROR,) N
+(    BUSCA_NOT_SET,) N
+(    MYERROR_LIM) N
+() N
+(} my_error_t;) N
+() N
+(const) K
+( ) p
+(char) k
+(* my_error_desc[] =) p n
+({) N
+(    "",) N
+(    ") S
+(usage: ./servidor_info_tcp <port number>) str
+(",) p n
+(    ") S
+(error: port number must be between 1 and 8000) str
+(",) p n
+(    ") S
+(error: database constains less rows than specified) str
+(",) p n
+(    ") S
+(error: failed to bind) str
+(",) p n
+(    ") S
+(error: vector 'busca' is not set) str
+(",) p n
+(    "") N
+(};) N
+() N
+(void) k
+( pMyError\(my_error_t e, ) p
+(const) K
+( ) p
+(char) k
+( *function\)) p n
+({) N
+(    ) S
+(if) K
+(\(NO_ERROR < e && e < MYERROR_LIM\) {) p n
+(    ) S 8 T (fprintf\(stderr, ") S
+(%s: %s.\\n) str
+(", function, my_error_desc[e]\);) p n
+(    }) N
+(}) N
+() N
+() N
+() N
+(/* === Estruturas de dados com as informa\303\247\303\265es dos estabelecimentos ======== */) c n
+() p n
+(static) K
+( item_t *lista = ) p
+(NULL) K
+(;) p n
+(static) K
+( ) p
+(int) k
+( lista_len = 0;) p n
+(static) K
+( res_busca_t *busca = ) p
+(NULL) K
+(;) p n
+(static) K
+( ) p
+(int) k
+( cli_posx = -1;) p 32 T () S
+(// -1 significa posi\303\247\303\243o do cliente) c n
+(static) K
+( ) p
+(int) k
+( cli_posy = -1;) p 32 T () S
+(// n\303\243o configurada ainda) c n
+() p n
+() N
+() N
+(/* ========================================================================) c n
+( * === Pragmas das fun\303\247\303\265es ================================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es de processamento de informa\303\247\303\265es ============================ ) c n
+(*/) N
+(void) k
+( readItemInfo\(item_t *item, ) p
+(char) k
+( *buf\);) p n
+(void) k
+( readDB\() p
+(void) k
+(\);) p n
+(void) k
+( writeDB\() p
+(void) k
+(\);) p n
+() N
+(/* === Fun\303\247\303\265es de busca e impress\303\243o de informa\303\247\303\265es ========================) c n
+( */) N
+(int) k
+( buscar\() p
+(const) K
+( ) p
+(int) k
+( x, ) p
+(const) K
+( ) p
+(int) k
+( y, ) p
+(char) k
+( *categoria\);) p n
+(void) k
+( sendBusca\() p
+(int) k
+( N, ) p
+(int) k
+( S\);) p n
+(void) k
+( sendInfoID\() p
+(int) k
+( id, ) p
+(int) k
+( S\);) p n
+(servidor_info_tcp.c) (Page 2/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (1/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(void) k
+( sendCategorias\() p
+(int) k
+( S\);) p n
+(void) k
+( votarID\() p
+(int) k
+( id, ) p
+(int) k
+( nota, ) p
+(int) k
+( S\);) p n
+() N
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+(int) k
+( bindTCP\() p
+(char) k
+( *port\);) p n
+(void) k
+( serverReady\() p
+(int) k
+( S\);) p n
+() N
+(/* === Interpretados de comandos ========================================== */) c n
+(int) k
+( interpretador\() p
+(char) k
+( *cmd, ) p
+(int) k
+( S\);) p n
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === MAIN ===============================================================) N
+( * ======================================================================== */) N
+() p n
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+() S 8 T () S
+(/* vari\303\241veis para cria\303\247\303\243o de conex\303\265es */) c n
+() p 8 T () S
+(int) k
+( listen_socket, connect_sock;) p n
+() S 8 T () S
+(struct) k
+( sockaddr_storage remote_st;) p n
+() S 8 T (socklen_t st_len;) N
+() S 8 T () S
+(/* vari\303\241veis das informa\303\247\303\265es do socket do cliente */) c n
+() p 8 T () S
+(struct) k
+( sockaddr_in si;) p n
+() S 8 T (socklen_t si_len;) N
+() S 8 T () S
+(/* vari\303\241veis para fork de processos */) c n
+() p 8 T () S
+(struct) k
+( sigaction sa;) p n
+() S 8 T (pid_t pid;) N
+() N
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() S 8 T () S
+(int) k
+( cmd = 0;) p n
+() N
+() S 8 T () S
+(/* verificando argumentos */) c n
+() p 8 T () S
+(if) K
+( \(argc < 2\) {) p n
+() S 8 T () S 16 T (pMyError\(USAGE_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* verifica\303\247\303\243o da porta usada: a porta deve ser well known */) c n
+() p 8 T (i = atoi\(argv[1]\);) N
+() S 8 T () S
+(if) K
+( \(0 >= i && i > 8000\) {) p n
+() S 8 T () S 16 T (pMyError\(PORT_OUT_RANGE, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* espera por conex\303\265es no listen_socket */) c n
+() p 8 T (listen_socket = bindTCP\(argv[1]\);) N
+() S 8 T () S
+(if) K
+( \(listen\(listen_socket, BACKLOG\) == -1\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(listen) str
+("\);) p n
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* configurando o handler para encerrar os procesos-zumbis */) c n
+(    sa.sa_handler = SIG_DFL;) p n
+(    sigemptyset\(&sa.sa_mask\);) N
+(    sa.sa_flags = SA_NOCLDWAIT;) N
+(    ) S
+(if) K
+( \(sigaction\(SIGCHLD, &sa, ) p
+(NULL) K
+(\) == -1\) {) p n
+(        perror\(") S
+(sigaction) str
+("\);) p n
+(        exit\(1\);) N
+(    }) N
+() N
+(    ) S
+(while) K
+(\(1\) {) p n
+() N
+(    ) S 8 T () S
+(/* aceita a conex\303\243o de um cliente por um socket novo connect_sock */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(\(connect_sock = accept\(listen_socket, \() p
+(struct) k
+( sockaddr *\)&re) p n
+(mote_st, &st_len\)\) < 0\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(accept) str
+("\);) p n
+(servidor_info_tcp.c) (Page 3/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* faz o fork do processo */) c n
+() p 8 T () S 16 T (pid = fork\(\);) N
+() S 8 T () S 16 T () S
+(if) K
+( \(pid < 0\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(fork) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* caso o processo seja o filho */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(pid == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* fecha o socket que est\303\241 esperando por novos clientes) c n
+( */) N
+() p 8 T () S 16 T () S 24 T (close\(listen_socket\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* coleta as informa\303\247\303\265es do socket e imprime na stdout) c n
+( */) N
+() p 8 T () S 16 T () S 24 T (si_len = ) S
+(sizeof) K
+(\(si\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(getpeername\(connect_sock, \() p
+(struct) k
+( sockaddr *\)&si, &s) p n
+(i_len\) < 0\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(getpeername) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (close\(connect_sock\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (inet_ntop\(AF_INET, &\(si.sin_addr\), buf, INET_ADDRSTRLEN\)) N
+(;) N
+() S 8 T () S 16 T () S 24 T (printf\(") S
+(IP address: %s; Port number: %d\\n) str
+(", buf, ntohs\(si.sin_por) p n
+(t\)\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* main loop */) c n
+() p 8 T () S 16 T () S 24 T () S
+(while) K
+( \(len = recv\(connect_sock, buf, ) p
+(sizeof) K
+(\(buf\), 0\)\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/* chamada do interpretador de comandos */) c n
+() p 8 T () S 16 T () S 24 T () S 32 T (cmd = interpretador\(buf, connect_sock\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/* encerra o processo filho por ordem do cliente) c n
+( */) N
+() p 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(cmd == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T (serverReady\(connect_sock\);) N
+() S 8 T () S 16 T () S 24 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T (close\(connect_sock\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(/* processo pai fecha sua c\303\263pia do socket do cliente */) c n
+() p 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (close\(connect_sock\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(return) K
+( 0;) p n
+(}) N
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Implementa\303\247\303\243o das fun\303\247\303\265es ==========================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es de processamento de informa\303\247\303\265es ============================ ) c n
+(*/) N
+() p n
+(void) k
+( readItemInfo\(item_t *item, ) p
+(char) k
+( *buf\)) p n
+(/*) c n
+(servidor_info_tcp.c) (Page 4/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (2/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( * desc) c 8 T () S 16 T (:) S 24 T (Preenche a estrutura de dados item com as informa\303\247\303\265es ) N
+(contidas) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (no buffer.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Estrutura de dados de sa\303\255da.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Buffer para a entrada de informa\303\247\303\265es.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( i = 0;) p n
+() S 8 T () S
+(char) k
+( *tok;) p n
+() N
+() S 8 T (tok = strtok\(buf,") S
+(;) str
+("\);) p n
+() S 8 T () S
+(while) K
+( \(tok != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S
+(switch) K
+( \(i\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 0:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->id = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 1:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->posx = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 2:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->posy = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 3:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->categoria, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 4:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->nome, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 5:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->endereco, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 6:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->pontuacao = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 7:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->votos = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T (i++;) N
+() S 8 T () S 16 T (tok = strtok\() S
+(NULL) K
+(,") p
+(;) str
+("\);) p n
+() S 8 T (}) N
+(}) N
+() N
+(void) k
+( readDB\() p
+(void) k
+(\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (L\303\252 as informa\303\247\303\265es de todos os estabelecimentos para u) N
+(m vetor) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (global \(lista\) na mem\303\263ria. A entrada \303\251 um arqu) N
+(ivo de texto) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (DBFILENAME \(cujo formato \303\251 dado junto a "#defin) N
+(e DBFILENAME"\).) N
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(FILE) k
+( *db;) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (db = fopen \(DBFILENAME,") S
+(r) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(db == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(failed to open the database) str
+("\);) p n
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+(servidor_info_tcp.c) (Page 5/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+() S 8 T () S
+(/* l\303\252 o n\303\272mero de estabelecimentos */) c n
+() p 8 T (fgets\(buf, BUFLEN, db\);) N
+() S 8 T (lista_len = atoi\(buf\);) N
+() N
+() S 8 T () S
+(/* cria a lista de estabelecimentos */) c n
+() p 8 T (lista = calloc\(lista_len, ) S
+(sizeof) K
+(\(item_t\)\);) p n
+() N
+() S 8 T () S
+(/* l\303\252 as informa\303\247\303\265es de cada estabelecimento */) c n
+() p 8 T (i = lista_len;) N
+() S 8 T () S
+(while) K
+( \(!feof\(db\) && i > 0\) {) p n
+() S 8 T () S 16 T (fgets\(buf, BUFLEN, db\);) N
+() S 8 T () S 16 T (readItemInfo\(&lista[lista_len - \(i--\)], buf\);) N
+() S 8 T (}) N
+() S 8 T () S
+(/* tratamento de erro para quando temos menos estabelecimentos do que N ) c n
+(*/) N
+() p 8 T () S
+(if) K
+( \(i > 0\) {) p n
+() S 8 T () S 16 T (pMyError\(DB_FEWER_ROWS, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (fclose\(db\);) N
+(}) N
+() N
+(void) k
+( writeDB\() p
+(void) k
+(\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Escreve as informa\303\247\303\265es de todos os estabelecimentos pr) N
+(esentes) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (na mem\303\263ria em um arquivo DBFILENAME.) N
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(FILE) k
+( *db;) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (db = fopen \(DBFILENAME,") S
+(w) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(db == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(failed to write to the database) str
+("\);) p n
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (fprintf\(db, ") S
+(%d\\n) str
+(", lista_len\);) p n
+() N
+() S 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%.4d;) str
+(", lista[i].id\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%d;%d;) str
+(", lista[i].posx, lista[i].posy\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].categoria\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].nome\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].endereco\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%d;) str
+(", lista[i].pontuacao\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%d\\n) str
+(", lista[i].votos\);) p n
+() N
+() S 8 T (}) N
+() N
+() S 8 T (fprintf\(db, ") S
+(\\n) str
+("\);) p n
+() N
+() S 8 T (fclose\(db\);) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es de busca e impress\303\243o de informa\303\247\303\265es ========================) c n
+( */) N
+() p n
+(int) k
+( buscar\() p
+(const) K
+( ) p
+(int) k
+( x, ) p
+(const) K
+( ) p
+(int) k
+( y, ) p
+(char) k
+( *categoria\)) p n
+(servidor_info_tcp.c) (Page 6/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (3/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Busca em um raio de 100 unidades da posi\303\247\303\243o \(x,y\) todo) N
+(s os) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (estabelecimentos da categoria dada; ou busca em ) N
+(um raio de) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (100 unidades todos os estabelecimentos de qualqu) N
+(er categoria,) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (caso categoria = NULL; ou lista todos os estabel) N
+(ecimentos de) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (uma categoria, caso x = -1 e y = -1; ou lista to) N
+(dos os) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (estabelecimentos, caso x = -1, y = -1 e categori) N
+(a = NULL.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Coordenada x da posi\303\247\303\243o do centro da busca.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Coordenada y da posi\303\247\303\243o do centro da b) N
+(usca.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Categoria dos estabelecimentos a serem b) N
+(uscados.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O n\303\272mero de estabelecimentos encontrados pela busca.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (\(O vetor da estrutura busca tamb\303\251m cont\303\251m dado) N
+(s de sa\303\255da.\)) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( out = 0;) p n
+() S 8 T () S
+(int) k
+( tmp[ITEMLIM];) p n
+() S 8 T () S
+(int) k
+( dx, dy;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura na lista pelos estabelecimentos que atendem aos crit\303\251rios */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() S 8 T () S 16 T (dx = lista[i].posx - x;) N
+() S 8 T () S 16 T (dy = lista[i].posy - y;) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(dx*dx + dy*dy <= 10000 || \(x == -1 && y == -1\)\)) p n
+() S 8 T () S 16 T (&& \(categoria == ) S
+(NULL) K n
+() p 8 T () S 16 T (|| strcmp\(lista[i].categoria, categoria\) == 0\)\) {) N
+() S 8 T () S 16 T () S 24 T (tmp[out++] = i;) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* monta o resultado da busca com o nome e id dos estabelecimentos */) c n
+() p 8 T (busca = calloc\(out, ) S
+(sizeof) K
+(\(res_busca_t\)\);) p n
+() S 8 T () S
+(for) K
+( \(i = 0; i < out; i++\) {) p n
+() S 8 T () S 16 T (busca[i].id = lista[tmp[i]].id;) N
+() S 8 T () S 16 T (strncpy\(busca[i].nome, lista[tmp[i]].nome, MAXSTRLEN\);) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+() N
+() S 8 T () S
+(return) K
+( out;) p n
+(}) N
+() N
+(void) k
+( sendBusca\() p
+(int) k
+( N, ) p
+(int) k
+( S\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia o ID e o nome de cada estabelecimento retornado po) N
+(r uma) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (busca.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (N\303\272meros de resultados da busca.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Socket pelo qual ser\303\243o enviados os dado) N
+(s.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+(servidor_info_tcp.c) (Page 7/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( */) c n
+({) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T () S
+(if) K
+( \(N == 0\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(Nenhum estabelecimento encontrado.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(return) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T (len = 0;) N
+() S 8 T (sprintf\(buf, ") S
+(\( ID \) Nome\\n) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T (}) N
+() S 8 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() N
+() S 8 T () S
+(for) K
+( \(i = 0; i < N; i++\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(\(%.4d\) %s\\n) str
+(", busca[i].id, busca[i].nome\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(send) str
+("\);) p n
+(        }) N
+(        memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() S 8 T (}) N
+() N
+() S 8 T (free\(busca\);) N
+(}) N
+() N
+(void) k
+( sendInfoID\() p
+(int) k
+( id, ) p
+(int) k
+( S\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia ao socket S uma mensagem contendo todas as informa) N
+(\303\247\303\265es) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (do estabelecimento com identificador id.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (id do estabelecimento selecionado.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (socket para enviar a sa\303\255da de dados.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T (bool_t exist_id = FALSE;) N
+() S 8 T () S
+(char) k
+( *error_msg = ") p
+(N\303\243o existe o estabelecimento com o id dado.\\n) str
+(";) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura pela id na lista */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(lista[i].id == id\) {) p n
+() S 8 T () S 16 T () S 24 T (exist_id = TRUE;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* caso encontre o id, prepara a mensagem e envia por S ) c n
+(*/) N
+() p 8 T () S 16 T () S 24 T (snprintf\(buf, BUFLEN,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (") S
+(<<< %s >>>\\n  ID: %.4d\\tCategoria: %s\\n  Endere\303\247o: %s\\n  Posi\303\247) str n
+(\303\243o: \(%d,%d\)\\tNota: %.2f\\n) S
+(",) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (lista[i].nome, lista[i].id, lista[i].categoria,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (lista[i].endereco, lista[i].posx, lista[i].posy,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (\() S
+(float) k
+(\)\(lista[i].pontuacao / lista[i].votos\)\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+(         ) S 16 T () S 24 T (perror\(") S
+(send) str
+("\);) p n
+(        ) S 16 T (}) N
+() S 8 T () S 16 T (}) N
+(servidor_info_tcp.c) (Page 8/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (4/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (}) N
+() N
+() S 8 T () S
+(/* caso n\303\243o encontre o id, envia uma mensagem de erro */) c n
+() p 8 T () S
+(if) K
+( \(!exist_id\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(send\(S, error_msg, strlen\(error_msg\), 0\) == -1\) {) p n
+(         ) S 16 T (perror\(") S
+(send) str
+("\);) p n
+(        }) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+(}) N
+() N
+(void) k
+( sendCategorias\() p
+(int) k
+( S\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia ao cliente a lista das categorias de estabelecimen) N
+(tos) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (existentes.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Socket para enviar a sa\303\255da de dados.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( categorias[lista_len][MAXSTRLEN];) p n
+() S 8 T () S
+(int) k
+( i, j, n;) p n
+() S 8 T (bool_t igual;) N
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* primeira categoria */) c n
+() p 8 T (strncpy\(categorias[0], lista[0].categoria, strlen\(lista[0].categoria\)\);) N
+() S 8 T (n = 1;) N
+() N
+() S 8 T () S
+(/* percorre a lista de estabelecimentos procurando pelas categorias */) c n
+() p 8 T () S
+(for) K
+( \(i = 1; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T (igual = FALSE;) N
+() N
+() S 8 T () S 16 T () S
+(/* verifica se a categoria corrente j\303\241 foi encontrada */) c n
+() p 8 T () S 16 T () S
+(for) K
+( \(j = 0; j < n; j++\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(categorias[j], lista[i].categoria\) == 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (igual = TRUE;) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* se a categoria corrente \303\251 nova, insere no resultado */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(igual == FALSE\) {) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(categorias[n++], ") S
+(%s) str
+(", lista[i].categoria\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* envia a lista das categorias pelo socket S */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < n; i++\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(%s\\n\\r) str
+(", categorias[i]\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+(}) N
+() N
+(void) k
+( votarID\() p
+(int) k
+( id, ) p
+(int) k
+( nota, ) p
+(int) k
+( S\)) p n
+(/*) c n
+(servidor_info_tcp.c) (Page 9/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( * desc) c 8 T () S 16 T (:) S 24 T (Computa o voto dado em um estabelecimento.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (ID do estabelecimento selecionado.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Nota a ser dada ao estabelecimento.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Socket para enviar a sa\303\255da de dados.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T (bool_t exist_id = FALSE;) N
+() S 8 T () S
+(char) k
+( *error_msg = ") p
+(N\303\243o existe o estabelecimento com o id dado.\\n) str
+(";) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura pela id na lista */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(lista[i].id == id\) {) p n
+() S 8 T () S 16 T () S 24 T (exist_id = TRUE;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* caso exista o id, atualiza a pontua\303\247\303\243o e votos */) c n
+() p 8 T () S 16 T () S 24 T (lista[i].pontuacao += nota;) N
+() S 8 T () S 16 T () S 24 T (lista[i].votos += 1;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* prepara a mensagem e envia por S */) c n
+() p 8 T () S 16 T () S 24 T (sprintf\(buf, ") S
+(Nota %d dada a %s.\\n\\r) str
+(", nota, lista[i].nome\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(send\(S, buf, strlen\(buf\), 0\) == -1\) {) p n
+(         ) S 16 T () S 24 T (perror\(") S
+(send) str
+("\);) p n
+(        ) S 16 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* caso n\303\243o encontre o id, envia uma mensagem de erro */) c n
+() p 8 T () S
+(if) K
+( \(!exist_id\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(send\(S, error_msg, strlen\(error_msg\), 0\) == -1\) {) p n
+(         ) S 16 T (perror\(") S
+(send) str
+("\);) p n
+(        }) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+() p n
+(int) k
+( bindTCP\() p
+(char) k
+( *port\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Associa a porta dada a um socket a ser retornado.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (String contendo a porta a ser usada.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O socket ao qual a porta foi associada.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( socket_fd;) p n
+() S 8 T () S
+(struct) k
+( addrinfo hints, *servinfo, *p;) p n
+() S 8 T () S
+(int) k
+( status;) p n
+() S 8 T () S
+(int) k
+( optval = 1;) p n
+() N
+() S 8 T () S
+(/* inicialmente retornando erro */) c n
+() p 8 T (socket_fd = -1;) N
+() N
+() S 8 T () S
+(/* estrutura a ser usada para obter um endere\303\247o IP */) c n
+() p 8 T (memset\(&hints, 0, ) S
+(sizeof) K
+(\(hints\)\);) p n
+(servidor_info_tcp.c) (Page 10/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (5/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (11-12) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (hints.ai_family = AF_INET;) S 40 T () S 48 T () S 56 T () S
+(/* IPv4 */) c n
+() p 8 T (hints.ai_socktype = SOCK_STREAM;) S 48 T () S
+(/* TCP */) c n
+() p 8 T (hints.ai_flags = AI_PASSIVE;) N
+() N
+() S 8 T () S
+(/* obtem a lista ligada com as associa\303\247\303\265es poss\303\255veis */) c n
+() p 8 T () S
+(if) K
+( \(\(status = getaddrinfo\() p
+(NULL) K
+(, port, &hints, &servinfo\)\) != 0\) {) p n
+() S 8 T () S 16 T (fprintf\(stderr, ") S
+(%s: getaddrinfo error: %s\\n) str
+(", __func__, gai_strerror\(st) p n
+(atus\)\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* percorre servinfo tentando fazer o bind */) c n
+() p 8 T () S
+(for) K
+( \(p = servinfo; p != ) p
+(NULL) K
+(; p = p->ai_next\) {) p n
+() N
+() S 8 T () S 16 T () S
+(/* tenta obter um socket */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(\(socket_fd = socket\(p->ai_family, p->ai_socktype, p->ai_prot) p n
+(ocol\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(socket) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* configura o socket para permitir reuso do endere\303\247o IP */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(setsockopt\(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, ) p
+(siz) K n
+(eof) S
+(\() p
+(int) k
+(\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(setsockopt) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tenta associar o endere\303\247o IP obtido de servinfo com o socket) c n
+( */) N
+() p 8 T () S 16 T () S
+(if) K
+( \(bind\(socket_fd, p->ai_addr, p->ai_addrlen\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (close\(socket_fd\);) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(bind) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (sleep\(1\);) N
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(break) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* tratamento de erro caso o bind falhe */) c n
+() p 8 T () S
+(if) K
+( \(p == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (pMyError\(BIND_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (freeaddrinfo\(servinfo\);) N
+() N
+() S 8 T () S
+(return) K
+( socket_fd;) p n
+(}) N
+() N
+(void) k
+( serverReady\() p
+(int) k
+( S\)) p n
+({) N
+() S 8 T () S
+(char) k
+( msg[MAXSTRLEN];) p n
+() N
+() S 8 T (memset\(msg, 0, ) S
+(sizeof) K
+(\(msg\)\);) p n
+() S 8 T (sprintf\(msg, ") S
+(SERVER_READY\\n\\r) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T (}) N
+(}) N
+() N
+() N
+() N
+(/* === Interpretados de comandos ========================================== */) c n
+() p n
+(int) k
+( interpretador\() p
+(char) k
+( *cmd, ) p
+(int) k
+( S\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Interpretador dos comandos recebidos pelo servidor.) N
+(servidor_info_tcp.c) (Page 11/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( *) c n
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Buffer contendo a linha de comando.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Socket para o qual respostas s\303\243o enviad) N
+(as.) N
+( *) N
+( * output) S 16 T (:) S 24 T (0 para continuar e -1 para encerrar a conex\303\243o.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( msg[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( tmp[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( *tok;) p n
+() S 8 T () S
+(int) k
+( id, nota;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T () S
+(if) K
+( \(\(tok = strtok\(cmd, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S
+(return) K
+( 0;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* entrando a posi\303\247\303\243o do cliente */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(posicao) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (cli_posx = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (cli_posy = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tratamento de erro na entrada das coordenadas */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(POSLIMMIN > cli_posx || cli_posx > POSLIMMAX) p n
+() S 8 T () S 16 T (|| POSLIMMIN > cli_posy || cli_posy > POSLIMMAX\) {) N
+() S 8 T () S 16 T () S 24 T (strncpy\(msg, ") S
+(Coordenadas devem estar entre ) str
+(", \(size_t\)\(30\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", POSLIMMIN\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strncat\(msg, ") S
+( e ) str
+(", \(size_t\)\(3\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", POSLIMMAX\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strcat\(msg, ") S
+(.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (cli_posx = -1;) N
+() S 8 T () S 16 T () S 24 T (cli_posy = -1;) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (strncpy\(msg, ") S
+(Posi\303\247\303\243o atual \() str
+(", \(size_t\)\(30\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", cli_posx\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strncat\(msg, ") S
+(,) str
+(", \(size_t\)\(3\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", cli_posy\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strcat\(msg, ") S
+(\).\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando a lista das categorias existentes */) c n
+(servidor_info_tcp.c) (Page 12/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (6/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (13-14) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categorias) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T (sendCategorias\(S\);) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando alguma listagem de estabelecimentos */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(buscar) str
+("\) == 0 || strcmp\(tok, ") p
+(listar) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* listar todos os estabelecimentos */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(todos) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T (i = buscar\(-1, -1, ) S
+(NULL) K
+(\);) p n
+() S 8 T () S 16 T () S 24 T (sendBusca\(i, S\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(perto) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(/* listar todos os estabelecimentos a 100m */) c n
+() p 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(todos) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(cli_posx == -1 || cli_posy == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (strcpy\(msg, ") S
+(Informe sua posi\303\247\303\243o antes.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) ) p n
+({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (i = buscar\(cli_posx, cli_posy, ) S
+(NULL) K
+(\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (sendBusca\(i, S\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(else) K n
+() p 8 T () S 16 T () S 24 T () S
+(/* listar todos os estabelecimentos de um categoria) c n
+() S 8 T () S 16 T () S 24 T ( * e que estejam a menos de 100m */) N
+() p 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categoria) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(cli_posx == -1 || cli_posy == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (strcpy\(msg, ") S
+(Informe sua posi\303\247\303\243o antes.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) ) p n
+({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (i = buscar\(cli_posx, cli_posy, tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (sendBusca\(i, S\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K n
+() p 8 T () S 16 T () S
+(/* listar todos os estabelecimentos de um categoria */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categoria) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T (i = buscar\(-1, -1, tok\);) N
+(servidor_info_tcp.c) (Page 13/14) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T (sendBusca\(i, S\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando informa\303\247\303\265es acerca do id */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(info) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T (id = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T (sendInfoID\(id, S\);) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* votando no id */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(votar) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (id = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (nota = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tratamento de erro para nota fora do intervalo */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(0 > nota || nota > 10 \) {) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(msg, ") S
+(Nota deve estar entre 0 e 10.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(send\(S, msg, strlen\(msg\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (votarID\(id, nota, S\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando encerramento da conex\303\243o */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(sair) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S
+(return) K
+( -1;) p n
+() S 8 T (}) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es auxiliares de depura\303\247\303\243o ==================================== ) c n
+(*/) N
+() p n
+(void) k
+( DEBUG_printItem\(item_t *item\)) p n
+({) N
+() S 8 T (printf\(") S
+(*** item ***\\n) str
+("\);) p n
+() S 8 T (printf\(") S
+(Id: %d\\t) str
+(", item->id\);) p n
+() S 8 T (printf\(") S
+(Posi\303\247\303\243o: %d,%d\\n) str
+(", item->posx, item->posy\);) p n
+() S 8 T (printf\(") S
+(Categoria: %s\\t) str
+(", item->categoria\);) p n
+() S 8 T (printf\(") S
+(Nome: %s\\n) str
+(", item->nome\);) p n
+() S 8 T (printf\(") S
+(Endere\303\247o: %s\\n) str
+(", item->endereco\);) p n
+() S 8 T (printf\(") S
+(Pontos acumul.: %d\\t) str
+(", item->pontuacao\);) p n
+() S 8 T (printf\(") S
+(Total de votos: %d\\n) str
+(", item->votos\);) p n
+() S 8 T (printf\(") S
+(\\n) str
+("\);) p n
+(}) N
+(servidor_info_tcp.c) (Page 14/14) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_tcp.c) (7/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <unistd.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <string.h>) p n
+(#include) K
+( <sys/types.h>) p n
+(#include) K
+( <sys/socket.h>) p n
+(#include) K
+( <netinet/in.h>) p n
+(#include) K
+( <netdb.h>) p n
+(#include) K
+( <arpa/inet.h>) p n
+() N
+() N
+() N
+(#define) K
+( BUFLEN 1024) p n
+() N
+() N
+() N
+(/* === Tipos auxiliares =================================================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k n
+({) p n
+() S 8 T (FALSE = 0,) N
+() S 8 T (TRUE = 1) N
+(} bool_t;) N
+() N
+() N
+() N
+(/* === Ferramentas para tratamento de erros =============================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k
+( {) p n
+(    NO_ERROR = 0,) N
+(    USAGE_ERROR,) N
+(    PORT_OUT_RANGE,) N
+(    CONNECT_ERROR,) N
+(    MYERROR_LIM) N
+() N
+(} my_error_t;) N
+() N
+(const) K
+( ) p
+(char) k
+(* my_error_desc[] =) p n
+({) N
+(    "",) N
+(    ") S
+(usage: ./cliente_info_tcp <port number>) str
+(",) p n
+(    ") S
+(error: port number must be between 1 and 8000) str
+(",) p n
+(    ") S
+(error: failed to connect) str
+(") p n
+(    "") N
+(};) N
+() N
+(void) k
+( pMyError\(my_error_t e, ) p
+(const) K
+( ) p
+(char) k
+( *function\)) p n
+({) N
+(    ) S
+(if) K
+(\(NO_ERROR < e && e < MYERROR_LIM\) {) p n
+(    ) S 8 T (fprintf\(stderr, ") S
+(%s: %s.\\n) str
+(", function, my_error_desc[e]\);) p n
+(    }) N
+(}) N
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Pragmas das fun\303\247\303\265es ================================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+(int) k
+( connectTCP\() p
+(char) k
+( *endIP, ) p
+(char) k
+( *port\);) p n
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === MAIN ===============================================================) N
+( * ======================================================================== */) N
+() p n
+(cliente_info_tcp.c) (Page 1/4) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+() S 8 T () S
+(int) k
+( sock;) p n
+() N
+() S 8 T (fd_set rfds0, rfds1;) N
+() S 8 T () S
+(struct) k
+( timeval tv;) p n
+() N
+() S 8 T () S
+(int) k
+( maxfd, rval;) p n
+() N
+() S 8 T (bool_t server_ready;) N
+() N
+() S 8 T () S
+(char) k
+( cmd[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() S 8 T () S
+(int) k
+( i, n;) p n
+() N
+() S 8 T () S
+(/* verificando argumentos */) c n
+() p 8 T () S
+(if) K
+( \(argc < 3\) {) p n
+() S 8 T () S 16 T (pMyError\(USAGE_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (i = atoi\(argv[2]\);) N
+() S 8 T () S
+(if) K
+( \(0 >= i && i > 8000\) {) p n
+() S 8 T () S 16 T (pMyError\(PORT_OUT_RANGE, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (sock = connectTCP\(argv[1], argv[2]\);) N
+() N
+() S 8 T (maxfd = fileno\(stdin\);) N
+() S 8 T (maxfd = \(maxfd < sock\) ? sock : maxfd;) N
+() N
+() S 8 T (FD_ZERO\(&rfds0\);) N
+() N
+() S 8 T (FD_SET\(fileno\(stdin\), &rfds0\);) N
+() S 8 T (FD_SET\(sock, &rfds0\);) N
+() N
+() S 8 T (tv.tv_sec = 0;) N
+() S 8 T (tv.tv_usec = 0;) N
+() N
+() S 8 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() N
+() S 8 T (server_ready = TRUE;) N
+() N
+() S 8 T () S
+(while) K
+( \(1\) {) p n
+() N
+() S 8 T () S 16 T (rfds1 = rfds0;) N
+() N
+(        ) S
+(if) K
+( \(\(rval = select\(maxfd + 1, &rfds1, ) p
+(NULL) K
+(, ) p
+(NULL) K
+(, &tv\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(select) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( ) p
+(if) K
+( \(rval > 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(FD_ISSET\(fileno\(stdin\), &rfds1\) && server_ready\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (memset\(cmd, 0, ) S
+(sizeof) K
+(\(cmd\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (fgets\(cmd, BUFLEN, stdin\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(send\(sock, cmd, strlen\(cmd\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T (server_ready = FALSE;) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(strcmp\(cmd, ") p
+(sair\\n) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+(cliente_info_tcp.c) (Page 2/4) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(cliente_info_tcp.c) (8/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 9
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () S
+(else) K
+( ) p
+(if) K
+( \(FD_ISSET\(sock, &rfds1\)\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (len = recv\(sock, buf, BUFLEN, 0\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(strstr\(buf, ") p
+(SERVER_READY\\n\\r) str
+("\) != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (server_ready = TRUE;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(strcmp\(buf, ") p
+(\\n) str
+("\) != 0 || strcmp\(buf, ") p
+(\\r) str
+("\) !) p n
+(= 0\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (printf\(") S
+(%s) str
+(", buf\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(return) K
+( 0;) p n
+(}) N
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Implementa\303\247\303\243o das fun\303\247\303\265es ==========================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+() p n
+(int) k
+( connectTCP\() p
+(char) k
+( *endIP, ) p
+(char) k
+( *port\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Conecta a um endere\303\247o IP e porta a um socket a ser reto) N
+(rnado.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (String contendo o endere\303\247o IP a ser usado.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (String contendo a porta a ser usada.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O socket da conex\303\243o criada.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( socket_fd;) p n
+() S 8 T () S
+(struct) k
+( addrinfo hints, *servinfo, *p;) p n
+() S 8 T () S
+(int) k
+( status;) p n
+() N
+() S 8 T () S
+(/* inicialmente retornando erro */) c n
+() p 8 T (socket_fd = -1;) N
+() N
+() S 8 T () S
+(/* estrutura a ser usada para obter um endere\303\247o IP */) c n
+() p 8 T (memset\(&hints, 0, ) S
+(sizeof) K
+(\(hints\)\);) p n
+() S 8 T (hints.ai_family = AF_INET;) S 40 T () S 48 T () S 56 T () S
+(/* IPv4 */) c n
+() p 8 T (hints.ai_socktype = SOCK_STREAM;) S 48 T () S
+(/* TCP */) c n
+() p n
+() S 8 T () S
+(/* obtem a lista ligada com as associa\303\247\303\265es poss\303\255veis */) c n
+() p 8 T () S
+(if) K
+( \(\(status = getaddrinfo\(endIP, port, &hints, &servinfo\)\) != 0\) {) p n
+() S 8 T () S 16 T (fprintf\(stderr, ") S
+(%s: getaddrinfo error: %s\\n) str
+(", __func__, gai_strerror\(st) p n
+(atus\)\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* percorre servinfo tentando se conectar */) c n
+() p 8 T () S
+(for) K
+( \(p = servinfo; p != ) p
+(NULL) K
+(; p = p->ai_next\) {) p n
+() N
+() S 8 T () S 16 T () S
+(/* tenta obter um socket */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(\(socket_fd = socket\(p->ai_family, p->ai_socktype, p->ai_prot) p n
+(ocol\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(socket) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tenta se conectar ao endere\303\247o IP dado */) c n
+(cliente_info_tcp.c) (Page 3/4) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S
+(if) K
+( \(connect\(socket_fd, p->ai_addr, p->ai_addrlen\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (close\(socket_fd\);) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(connect) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(break) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* tratamento de erro caso o bind falhe */) c n
+() p 8 T () S
+(if) K
+( \(p == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (pMyError\(CONNECT_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (freeaddrinfo\(servinfo\);) N
+() N
+() S 8 T () S
+(return) K
+( socket_fd;) p n
+(}) N
+(cliente_info_tcp.c) (Page 4/4) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(cliente_info_tcp.c) (9/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 10
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <unistd.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <string.h>) p n
+(#include) K
+( <sys/types.h>) p n
+(#include) K
+( <sys/socket.h>) p n
+(#include) K
+( <netinet/in.h>) p n
+(#include) K
+( <netdb.h>) p n
+(#include) K
+( <arpa/inet.h>) p n
+(#include) K
+( <sys/wait.h>) p n
+(#include) K
+( <signal.h>) p n
+() N
+() N
+(/*) c n
+( * DBFILENAME \303\251 o nome do arquivo com os dados dos estabelecimentos.) N
+( *) N
+( * O arquivo guarda na primeira linha o n\303\272mero de estabelecimentos existentes) N
+( * e nas linhas seguintes os dados de cada estabelecimento, um por linha,) N
+( * separado por ponto-e-v\303\255rgula. O arquivo deve ter uma linha em branco no) N
+( * final.) N
+( *) N
+( * Os dados s\303\243o:) N
+( * ) S 8 T (id;x;y;categoria;nome;endere\303\247o;pontuacao;votos) N
+( * onde:) N
+( * ) S 8 T (- 'id' \303\251 um n\303\272mero de quatro d\303\255gitos;) N
+( * ) S 8 T (- 'x' \303\251 a coordenada x \(0-1000\);) N
+( * ) S 8 T (- 'y' \303\251 a coordenada y \(0-1000\);) N
+( * ) S 8 T (- 'categoria' \303\251 uma string com a categoria do estabelecimento;) N
+( * ) S 8 T (- 'nome' \303\251 uma string com o nome do estabelecimento;) N
+( * ) S 8 T (- 'endereco' \303\251 uma string com o endere\303\247o;) N
+( * ) S 8 T (- 'pontuacao' \303\251 a soma das notas das ao estabelecimento;) N
+( *  - 'votos' \303\251 a quantidade de notas recebidas.) N
+( *) N
+( * As strings tem comprimento m\303\241ximo de 256 caracteres.) N
+( */) N
+(#define) K
+( DBFILENAME ") p
+(db.csv) str
+(") p n
+(/* os limites das coordenaras de posicionamento */) c n
+(#define) K
+( POSLIMMAX 1000) p n
+(#define) K
+( POSLIMMIN 0) p n
+(/* tamanho do backlog da fun\303\247\303\243o listen */) c n
+(#define) K
+( BACKLOG 100) p n
+(/* n\303\272mero m\303\241ximo de estabelecimentos na lista */) c n
+(#define) K
+( ITEMLIM 8000) p n
+(/* tamanho m\303\241ximo das strings usadas */) c n
+(#define) K
+( BUFLEN 1024) p n
+(#define) K
+( MAXSTRLEN 256) p n
+() N
+() N
+() N
+(/* === Tipos auxiliares =================================================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k n
+({) p n
+() S 8 T (FALSE = 0,) N
+() S 8 T (TRUE = 1) N
+(} bool_t;) N
+() N
+() N
+() N
+(/* === Estrutura de dados dos estabelecimentos ============================ */) c n
+() p n
+(typedef) K
+( ) p
+(struct) k
+( item {) p n
+() S 8 T () S
+(int) k
+( id;) p n
+() S 8 T () S
+(int) k
+( posx;) p n
+() S 8 T () S
+(int) k
+( posy;) p n
+() S 8 T () S
+(char) k
+( categoria[MAXSTRLEN];) p n
+() S 8 T () S
+(char) k
+( nome[MAXSTRLEN];) p n
+() S 8 T () S
+(char) k
+( endereco[MAXSTRLEN];) p n
+(servidor_info_udp.c) (Page 1/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S
+(int) k
+( pontuacao;) p n
+() S 8 T () S
+(int) k
+( votos;) p n
+(} item_t;) N
+() N
+(typedef) K
+( ) p
+(struct) k
+( res_busca {) p n
+() S 8 T () S
+(int) k
+( id;) p n
+() S 8 T () S
+(char) k
+( nome[MAXSTRLEN];) p n
+(} res_busca_t;) N
+() N
+() N
+() N
+(/* === Ferramentas para tratamento de erros =============================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k
+( {) p n
+(    NO_ERROR = 0,) N
+(    USAGE_ERROR,) N
+(    PORT_OUT_RANGE,) N
+(    DB_FEWER_ROWS,) N
+(    BIND_ERROR,) N
+(    BUSCA_NOT_SET,) N
+(    MYERROR_LIM) N
+() N
+(} my_error_t;) N
+() N
+(const) K
+( ) p
+(char) k
+(* my_error_desc[] =) p n
+({) N
+(    "",) N
+(    ") S
+(usage: ./servidor_info_tcp <port number>) str
+(",) p n
+(    ") S
+(error: port number must be between 1 and 8000) str
+(",) p n
+(    ") S
+(error: database constains less rows than specified) str
+(",) p n
+(    ") S
+(error: failed to bind) str
+(",) p n
+(    ") S
+(error: vector 'busca' is not set) str
+(",) p n
+(    "") N
+(};) N
+() N
+(void) k
+( pMyError\(my_error_t e, ) p
+(const) K
+( ) p
+(char) k
+( *function\)) p n
+({) N
+(    ) S
+(if) K
+(\(NO_ERROR < e && e < MYERROR_LIM\) {) p n
+(    ) S 8 T (fprintf\(stderr, ") S
+(%s: %s.\\n) str
+(", function, my_error_desc[e]\);) p n
+(    }) N
+(}) N
+() N
+() N
+() N
+(/* === Estruturas de dados com as informa\303\247\303\265es dos estabelecimentos ======== */) c n
+() p n
+(static) K
+( item_t *lista = ) p
+(NULL) K
+(;) p n
+(static) K
+( ) p
+(int) k
+( lista_len = 0;) p n
+(static) K
+( res_busca_t *busca = ) p
+(NULL) K
+(;) p n
+(static) K
+( ) p
+(int) k
+( cli_posx = -1;) p 32 T () S
+(// -1 significa posi\303\247\303\243o do cliente) c n
+(static) K
+( ) p
+(int) k
+( cli_posy = -1;) p 32 T () S
+(// n\303\243o configurada ainda) c n
+() p n
+() N
+() N
+(/* ========================================================================) c n
+( * === Pragmas das fun\303\247\303\265es ================================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es de processamento de informa\303\247\303\265es ============================ ) c n
+(*/) N
+(void) k
+( readItemInfo\(item_t *item, ) p
+(char) k
+( *buf\);) p n
+(void) k
+( readDB\() p
+(void) k
+(\);) p n
+(void) k
+( writeDB\() p
+(void) k
+(\);) p n
+() N
+(/* === Fun\303\247\303\265es de busca e impress\303\243o de informa\303\247\303\265es ========================) c n
+( */) N
+(int) k
+( buscar\() p
+(const) K
+( ) p
+(int) k
+( x, ) p
+(const) K
+( ) p
+(int) k
+( y, ) p
+(char) k
+( *categoria\);) p n
+(void) k
+( sendBusca\() p
+(int) k
+( N, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R, ) p
+(int) k
+( format\);) p n
+(void) k
+( sendInfoID\() p
+(int) k
+( id, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\);) p n
+(servidor_info_udp.c) (Page 2/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (10/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 11
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(int) k
+( listarCategorias\() p
+(void) k
+(\);) p n
+(void) k
+( votarID\() p
+(int) k
+( id, ) p
+(int) k
+( nota, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\);) p n
+() N
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+(char) k
+( *sendACK\() p
+(int) k
+( S, ) p
+(char) k
+( *buf, ) p
+(struct) k
+( sockaddr *R\);) p n
+(int) k
+( bindUDP\() p
+(char) k
+( *port\);) p n
+(void) k
+( serverReady\() p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\);) p n
+() N
+(/* === Interpretados de comandos ========================================== */) c n
+(int) k
+( interpretador\() p
+(char) k
+( *cmd, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\);) p n
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === MAIN ===============================================================) N
+( * ======================================================================== */) N
+() p n
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+() S 8 T () S
+(int) k
+( sock;) p n
+() S 8 T () S
+(struct) k
+( sockaddr_storage remote_st;) p n
+() S 8 T (socklen_t st_len;) N
+() N
+() S 8 T () S
+(char) k
+( *cmd;) p n
+() S 8 T () S
+(char) k
+( msg[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() S 8 T () S
+(int) k
+( rval = 0;) p n
+() N
+() S 8 T () S
+(/* verificando argumentos */) c n
+() p 8 T () S
+(if) K
+( \(argc < 2\) {) p n
+() S 8 T () S 16 T (pMyError\(USAGE_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* verifica\303\247\303\243o da porta usada: a porta deve ser well known */) c n
+() p 8 T (i = atoi\(argv[1]\);) N
+() S 8 T () S
+(if) K
+( \(0 >= i && i > 8000\) {) p n
+() S 8 T () S 16 T (pMyError\(PORT_OUT_RANGE, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* faz o bind da porta ao sock */) c n
+() p 8 T (sock = bindUDP\(argv[1]\);) N
+() N
+() S 8 T (st_len = ) S
+(sizeof) K
+(\(remote_st\);) p n
+() N
+(    ) S
+(/* main loop */) c n
+() p 8 T () S
+(while) K
+( \(\(len = recvfrom\(sock, buf, ) p
+(sizeof) K
+(\(buf\), 0,) p n
+() S 8 T (\() S
+(struct) k
+( sockaddr *\)&remote_st, &st_len\)\) != -1\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(len > 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* envia uma confirma\303\247\303\243o de recebimento */) c n
+() p 8 T () S 16 T () S 24 T (cmd = sendACK\(sock, buf, \() S
+(struct) k
+( sockaddr *\)&remote_st\);) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* interpretador de comandos */) c n
+() p 8 T () S 16 T () S 24 T (rval = interpretador\(cmd, sock, \() S
+(struct) k
+( sockaddr *\)&remo) p n
+(te_st\);) N
+() N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() N
+() S 8 T () S 16 T (serverReady\(sock, \() S
+(struct) k
+( sockaddr *\)&remote_st\);) p n
+() N
+() S 8 T (}) N
+() N
+(servidor_info_udp.c) (Page 3/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (close\(sock\);) N
+() N
+() S 8 T () S
+(return) K
+( 0;) p n
+(}) N
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Implementa\303\247\303\243o das fun\303\247\303\265es ==========================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es de processamento de informa\303\247\303\265es ============================ ) c n
+(*/) N
+() p n
+(void) k
+( readItemInfo\(item_t *item, ) p
+(char) k
+( *buf\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Preenche a estrutura de dados item com as informa\303\247\303\265es ) N
+(contidas) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (no buffer.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Estrutura de dados de sa\303\255da.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Buffer para a entrada de informa\303\247\303\265es.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( i = 0;) p n
+() S 8 T () S
+(char) k
+( *tok;) p n
+() N
+() S 8 T (tok = strtok\(buf,") S
+(;) str
+("\);) p n
+() S 8 T () S
+(while) K
+( \(tok != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S
+(switch) K
+( \(i\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 0:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->id = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 1:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->posx = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 2:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->posy = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 3:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->categoria, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 4:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->nome, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 5:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncpy\(item->endereco, tok, MAXSTRLEN\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 6:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->pontuacao = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S
+(case) K
+( 7:) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (item->votos = atoi\(tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T (i++;) N
+() S 8 T () S 16 T (tok = strtok\() S
+(NULL) K
+(,") p
+(;) str
+("\);) p n
+() S 8 T (}) N
+(}) N
+() N
+(void) k
+( readDB\() p
+(void) k
+(\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (L\303\252 as informa\303\247\303\265es de todos os estabelecimentos para u) N
+(m vetor) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (global \(lista\) na mem\303\263ria. A entrada \303\251 um arqu) N
+(ivo de texto) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (DBFILENAME \(cujo formato \303\251 dado junto a "#defin) N
+(servidor_info_udp.c) (Page 4/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (11/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 12
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(e DBFILENAME"\).) c n
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(FILE) k
+( *db;) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (db = fopen \(DBFILENAME,") S
+(r) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(db == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(failed to open the database) str
+("\);) p n
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* l\303\252 o n\303\272mero de estabelecimentos */) c n
+() p 8 T (fgets\(buf, BUFLEN, db\);) N
+() S 8 T (lista_len = atoi\(buf\);) N
+() N
+() S 8 T () S
+(/* cria a lista de estabelecimentos */) c n
+() p 8 T (lista = calloc\(lista_len, ) S
+(sizeof) K
+(\(item_t\)\);) p n
+() N
+() S 8 T () S
+(/* l\303\252 as informa\303\247\303\265es de cada estabelecimento */) c n
+() p 8 T (i = lista_len;) N
+() S 8 T () S
+(while) K
+( \(!feof\(db\) && i > 0\) {) p n
+() S 8 T () S 16 T (fgets\(buf, BUFLEN, db\);) N
+() S 8 T () S 16 T (readItemInfo\(&lista[lista_len - \(i--\)], buf\);) N
+() S 8 T (}) N
+() S 8 T () S
+(/* tratamento de erro para quando temos menos estabelecimentos do que N ) c n
+(*/) N
+() p 8 T () S
+(if) K
+( \(i > 0\) {) p n
+() S 8 T () S 16 T (pMyError\(DB_FEWER_ROWS, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (fclose\(db\);) N
+(}) N
+() N
+(void) k
+( writeDB\() p
+(void) k
+(\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Escreve as informa\303\247\303\265es de todos os estabelecimentos pr) N
+(esentes) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (na mem\303\263ria em um arquivo DBFILENAME.) N
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(FILE) k
+( *db;) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (db = fopen \(DBFILENAME,") S
+(w) str
+("\);) p n
+() S 8 T () S
+(if) K
+( \(db == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(failed to write to the database) str
+("\);) p n
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (fprintf\(db, ") S
+(%d\\n) str
+(", lista_len\);) p n
+() N
+() S 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%.4d;) str
+(", lista[i].id\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%d;%d;) str
+(", lista[i].posx, lista[i].posy\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].categoria\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].nome\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%s;) str
+(", lista[i].endereco\);) p n
+(servidor_info_udp.c) (Page 5/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T (fprintf\(db, ") S
+(%d;) str
+(", lista[i].pontuacao\);) p n
+() S 8 T () S 16 T (fprintf\(db, ") S
+(%d\\n) str
+(", lista[i].votos\);) p n
+() N
+() S 8 T (}) N
+() N
+() S 8 T (fprintf\(db, ") S
+(\\n) str
+("\);) p n
+() N
+() S 8 T (fclose\(db\);) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es de busca e impress\303\243o de informa\303\247\303\265es ========================) c n
+( */) N
+() p n
+(int) k
+( buscar\() p
+(const) K
+( ) p
+(int) k
+( x, ) p
+(const) K
+( ) p
+(int) k
+( y, ) p
+(char) k
+( *categoria\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Busca em um raio de 100 unidades da posi\303\247\303\243o \(x,y\) todo) N
+(s os) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (estabelecimentos da categoria dada; ou busca em ) N
+(um raio de) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (100 unidades todos os estabelecimentos de qualqu) N
+(er categoria,) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (caso categoria = NULL; ou lista todos os estabel) N
+(ecimentos de) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (uma categoria, caso x = -1 e y = -1; ou lista to) N
+(dos os) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (estabelecimentos, caso x = -1, y = -1 e categori) N
+(a = NULL.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Coordenada x da posi\303\247\303\243o do centro da busca.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Coordenada y da posi\303\247\303\243o do centro da b) N
+(usca.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Categoria dos estabelecimentos a serem b) N
+(uscados.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O n\303\272mero de estabelecimentos encontrados pela busca.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (\(O vetor da estrutura busca tamb\303\251m cont\303\251m dado) N
+(s de sa\303\255da.\)) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( out = 0;) p n
+() S 8 T () S
+(int) k
+( tmp[ITEMLIM];) p n
+() S 8 T () S
+(int) k
+( dx, dy;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura na lista pelos estabelecimentos que atendem aos crit\303\251rios */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() S 8 T () S 16 T (dx = lista[i].posx - x;) N
+() S 8 T () S 16 T (dy = lista[i].posy - y;) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(dx*dx + dy*dy <= 10000 || \(x == -1 && y == -1\)\)) p n
+() S 8 T () S 16 T (&& \(categoria == ) S
+(NULL) K n
+() p 8 T () S 16 T (|| strcmp\(lista[i].categoria, categoria\) == 0\)\) {) N
+() S 8 T () S 16 T () S 24 T (tmp[out++] = i;) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* monta o resultado da busca com o nome e id dos estabelecimentos */) c n
+() p 8 T (busca = calloc\(out, ) S
+(sizeof) K
+(\(res_busca_t\)\);) p n
+() S 8 T () S
+(for) K
+( \(i = 0; i < out; i++\) {) p n
+() S 8 T () S 16 T (busca[i].id = lista[tmp[i]].id;) N
+() S 8 T () S 16 T (strncpy\(busca[i].nome, lista[tmp[i]].nome, MAXSTRLEN\);) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+(servidor_info_udp.c) (Page 6/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (12/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 13
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (lista_len = 0;) N
+() N
+() S 8 T () S
+(return) K
+( out;) p n
+(}) N
+() N
+(void) k
+( sendBusca\() p
+(int) k
+( N, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R, ) p
+(int) k
+( format\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia o ID e o nome de cada estabelecimento retornado po) N
+(r uma) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (busca.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (N\303\272meros de resultados da busca.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Socket pelo qual ser\303\243o enviados os dado) N
+(s.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Informa\303\247\303\265es de rede sobre o cliente.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (4.) S 40 T (Formato das mensagens: 0 para lista de e) N
+(stabelecimentos) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (ou 1 para lista de categorias.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() S 8 T () S
+(int) k
+( i, j;) p n
+() N
+() S 8 T () S
+(if) K
+( \(N == 0\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(Nenhum estabelecimento encontrado.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(sendto\(S, buf, strlen\(buf\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sockaddr_sto) p n
+(rage\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(return) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T (len = 0;) N
+() S 8 T () S
+(if) K
+( \(format == 0\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(\( ID \) Nome\\n) str
+("\);) p n
+() S 8 T (}) N
+() S 8 T () S
+(else) K
+( ) p
+(if) K
+( \(format == 1\) {) p n
+() S 8 T () S 16 T (sprintf\(buf, ") S
+(Categorias:\\n) str
+("\);) p n
+() S 8 T (}) N
+() S 8 T (len = strlen\(buf\);) N
+() N
+() S 8 T (j = 0;) N
+() S 8 T () S
+(for) K
+( \(i = 0; i < N; i++\) {) p n
+() S 8 T () S 16 T () S
+(/* montando mensagens menores que 1024 bytes */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(j <= 2\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(format == 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (sprintf\(buf+len, ") S
+(\(%.4d\) %s\\n) str
+(", busca[i].id, busca) p n
+([i].nome\);) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(else) K
+( ) p
+(if) K
+( \(format == 1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (sprintf\(buf+len, ") S
+( %s\\n) str
+(", busca[i].nome\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (len = strlen\(buf\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(if) K
+( \(j == 2\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, buf, strlen\(buf\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(sendto) str
+("\);) p n
+(        ) S 16 T (}) N
+(        ) S 16 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+(        ) S 16 T (len = 0;) N
+(        ) S 16 T (j = 0;) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (j++;) N
+() S 8 T () S 16 T (}) N
+(servidor_info_udp.c) (Page 7/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (}) N
+() N
+() S 8 T () S
+(/* se alguma mensagem foi montada mas n\303\243o enviada, envia */) c n
+() p 8 T () S
+(if) K
+( \(j > 0\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(sendto\(S, buf, strlen\(buf\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sockaddr_sto) p n
+(rage\)\) == -1\) {) N
+(       ) S 8 T () S 16 T (perror\(") S
+(sendto) str
+("\);) p n
+(       ) S 8 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T (free\(busca\);) N
+(}) N
+() N
+(void) k
+( sendInfoID\() p
+(int) k
+( id, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia ao socket S uma mensagem contendo todas as informa) N
+(\303\247\303\265es) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (do estabelecimento com identificador id.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (ID do estabelecimento selecionado.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Socket para enviar a sa\303\255da de dados.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Informa\303\247\303\265es de rede sobre o cliente.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T (bool_t exist_id = FALSE;) N
+() S 8 T () S
+(char) k
+( *error_msg = ") p
+(N\303\243o existe o estabelecimento com o id dado.\\n) str
+(";) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura pela id na lista */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(lista[i].id == id\) {) p n
+() S 8 T () S 16 T () S 24 T (exist_id = TRUE;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* caso encontre o id, prepara a mensagem e envia por S ) c n
+(*/) N
+() p 8 T () S 16 T () S 24 T (snprintf\(buf, BUFLEN,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (") S
+(<<< %s >>>\\n  ID: %.4d\\tCategoria: %s\\n  Endere\303\247o: %s\\n  Posi\303\247) str n
+(\303\243o: \(%d,%d\)\\tNota: %.2f\\n) S
+(",) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (lista[i].nome, lista[i].id, lista[i].categoria,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (lista[i].endereco, lista[i].posx, lista[i].posy,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (\() S
+(float) k
+(\)\(lista[i].pontuacao / lista[i].votos\)\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, buf, strlen\(buf\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+(         ) S 16 T () S 24 T (perror\(") S
+(sendto) str
+("\);) p n
+(        ) S 16 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* caso n\303\243o encontre o id, envia uma mensagem de erro */) c n
+() p 8 T () S
+(if) K
+( \(!exist_id\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(sendto\(S, error_msg, strlen\(error_msg\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( ) p n
+(sockaddr_storage\)\) == -1\) {) N
+(         ) S 16 T (perror\(") S
+(sendto) str
+("\);) p n
+(        }) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+(}) N
+() N
+(int) k
+( listarCategorias\() p
+(void) k
+(\)) p n
+(/*) c n
+(servidor_info_udp.c) (Page 8/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (13/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 14
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( * desc) c 8 T () S 16 T (:) S 24 T (Gera lista das categorias de estabelecimentos existentes) N
+(.) N
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (N\303\272mero de categorias.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( categorias[lista_len][MAXSTRLEN];) p n
+() S 8 T () S
+(int) k
+( i, j, n;) p n
+() S 8 T (bool_t igual;) N
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T (busca = calloc\(lista_len, ) S
+(sizeof) K
+(\(res_busca_t\)\);) p n
+() N
+() S 8 T () S
+(/* primeira categoria */) c n
+() p 8 T (strncpy\(busca[0].nome, lista[0].categoria, strlen\(lista[0].categoria\)\);) N
+() S 8 T (n = 1;) N
+() N
+() S 8 T () S
+(/* percorre a lista de estabelecimentos procurando pelas categorias */) c n
+() p 8 T () S
+(for) K
+( \(i = 1; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T (igual = FALSE;) N
+() N
+() S 8 T () S 16 T () S
+(/* verifica se a categoria corrente j\303\241 foi encontrada */) c n
+() p 8 T () S 16 T () S
+(for) K
+( \(j = 0; j < n; j++\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(busca[j].nome, lista[i].categoria\) == 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (igual = TRUE;) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* se a categoria corrente \303\251 nova, insere no resultado */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(igual == FALSE\) {) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(busca[n++].nome, ") S
+(%s) str
+(", lista[i].categoria\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+() N
+() S 8 T () S
+(return) K
+( n;) p n
+(}) N
+() N
+(void) k
+( votarID\() p
+(int) k
+( id, ) p
+(int) k
+( nota, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Computa o voto dado em um estabelecimento.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (ID do estabelecimento selecionado.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Nota a ser dada ao estabelecimento.) N
+( *) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Socket para enviar a sa\303\255da de dados.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (4.) S 40 T (Informa\303\247\303\265es de rede sobre o cliente.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Nenhuma.) N
+( */) N
+({) p n
+() S 8 T (bool_t exist_id = FALSE;) N
+() S 8 T () S
+(char) k
+( *error_msg = ") p
+(N\303\243o existe o estabelecimento com o id dado.\\n) str
+(";) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T (readDB\(\);) N
+() N
+() S 8 T () S
+(/* procura pela id na lista */) c n
+() p 8 T () S
+(for) K
+( \(i = 0; i < lista_len; i++\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(lista[i].id == id\) {) p n
+(servidor_info_udp.c) (Page 9/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T (exist_id = TRUE;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* caso exista o id, atualiza a pontua\303\247\303\243o e votos */) c n
+() p 8 T () S 16 T () S 24 T (lista[i].pontuacao += nota;) N
+() S 8 T () S 16 T () S 24 T (lista[i].votos += 1;) N
+() N
+() S 8 T () S 16 T () S 24 T () S
+(/* prepara a mensagem e envia por S */) c n
+() p 8 T () S 16 T () S 24 T (sprintf\(buf, ") S
+(Nota %d dada a %s.\\n\\r) str
+(", nota, lista[i].nome\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, buf, strlen\(buf\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+(         ) S 16 T () S 24 T (perror\(") S
+(sendto) str
+("\);) p n
+(        ) S 16 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* caso n\303\243o encontre o id, envia uma mensagem de erro */) c n
+() p 8 T () S
+(if) K
+( \(!exist_id\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(sendto\(S, error_msg, strlen\(error_msg\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( ) p n
+(sockaddr_storage\)\) == -1\) {) N
+(         ) S 16 T (perror\(") S
+(sendto) str
+("\);) p n
+(        }) N
+() S 8 T (}) N
+() N
+() S 8 T (writeDB\(\);) N
+() S 8 T (free\(lista\);) N
+() S 8 T (lista_len = 0;) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+() p n
+(char) k
+( *sendACK\() p
+(int) k
+( S, ) p
+(char) k
+( *buf, ) p
+(struct) k
+( sockaddr *R\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Envia uma mensagem de confirma\303\247\303\243o de recebimento para) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (o cliente.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Socket para envio da mensagem.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (String com a mensagem recebida.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Informa\303\247\303\265es de rede sobre o cliente.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Apontador para o primeiro caracter do conte\303\272do da mensa) N
+(gem) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (recebida.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( msg[BUFLEN];) p n
+() N
+() S 8 T (sprintf\(msg, ") S
+(ACK) str
+("\);) p n
+() S 8 T (strncat\(msg, buf, \(size_t\)\(6\)\);) N
+() N
+() S 8 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R,) p n
+() S 8 T () S
+(sizeof) K
+(\() p
+(struct) k
+( sockaddr_storage\)\) == -1\) {) p n
+() S 8 T () S 16 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(return) K
+( &buf[6];) p n
+(}) N
+() N
+(int) k
+( bindUDP\() p
+(char) k
+( *port\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Associa a porta dada a um socket a ser retornado.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (String contendo a porta a ser usada.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O socket ao qual a porta foi associada.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( socket_fd;) p n
+(servidor_info_udp.c) (Page 10/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (14/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (11-12) 15
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S
+(struct) k
+( addrinfo hints, *servinfo, *p;) p n
+() S 8 T () S
+(int) k
+( status;) p n
+() S 8 T () S
+(int) k
+( optval = 1;) p n
+() N
+() S 8 T () S
+(/* inicialmente retornando erro */) c n
+() p 8 T (socket_fd = -1;) N
+() N
+() S 8 T () S
+(/* estrutura a ser usada para obter um endere\303\247o IP */) c n
+() p 8 T (memset\(&hints, 0, ) S
+(sizeof) K
+(\(hints\)\);) p n
+() S 8 T (hints.ai_family = AF_INET;) S 40 T () S 48 T () S 56 T () S
+(/* IPv4 */) c n
+() p 8 T (hints.ai_socktype = SOCK_DGRAM;) S 40 T () S 48 T () S
+(/* UDP */) c n
+() p 8 T (hints.ai_flags = AI_PASSIVE;) N
+() N
+() S 8 T () S
+(/* obtem a lista ligada com as associa\303\247\303\265es poss\303\255veis */) c n
+() p 8 T () S
+(if) K
+( \(\(status = getaddrinfo\() p
+(NULL) K
+(, port, &hints, &servinfo\)\) != 0\) {) p n
+() S 8 T () S 16 T (fprintf\(stderr, ") S
+(%s: getaddrinfo error: %s\\n) str
+(", __func__, gai_strerror\(st) p n
+(atus\)\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* percorre servinfo tentando fazer o bind */) c n
+() p 8 T () S
+(for) K
+( \(p = servinfo; p != ) p
+(NULL) K
+(; p = p->ai_next\) {) p n
+() N
+() S 8 T () S 16 T () S
+(/* tenta obter um socket */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(\(socket_fd = socket\(p->ai_family, p->ai_socktype, p->ai_prot) p n
+(ocol\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(socket) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* configura o socket para permitir reuso do endere\303\247o IP */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(setsockopt\(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, ) p
+(siz) K n
+(eof) S
+(\() p
+(int) k
+(\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(setsockopt) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tenta associar o endere\303\247o IP obtido de servinfo com o socket) c n
+( */) N
+() p 8 T () S 16 T () S
+(if) K
+( \(bind\(socket_fd, p->ai_addr, p->ai_addrlen\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (close\(socket_fd\);) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(bind) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (sleep\(1\);) N
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(break) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* tratamento de erro caso o bind falhe */) c n
+() p 8 T () S
+(if) K
+( \(p == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (pMyError\(BIND_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (freeaddrinfo\(servinfo\);) N
+() N
+() S 8 T () S
+(return) K
+( socket_fd;) p n
+(}) N
+() N
+(void) k
+( serverReady\() p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\)) p n
+({) N
+() S 8 T () S
+(char) k
+( msg[MAXSTRLEN];) p n
+() N
+() S 8 T (memset\(msg, 0, ) S
+(sizeof) K
+(\(msg\)\);) p n
+() S 8 T (sprintf\(msg, ") S
+(SERVER_READY\\n\\r) str
+("\);) p n
+() N
+() S 8 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R,) p n
+() S 8 T () S
+(sizeof) K
+(\() p
+(struct) k
+( sockaddr_storage\)\) == -1\) {) p n
+(servidor_info_udp.c) (Page 11/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T (}) N
+(}) N
+() N
+() N
+() N
+(/* === Interpretados de comandos ========================================== */) c n
+() p n
+(int) k
+( interpretador\() p
+(char) k
+( *cmd, ) p
+(int) k
+( S, ) p
+(struct) k
+( sockaddr *R\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Interpretador dos comandos recebidos pelo servidor.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (Buffer contendo a linha de comando.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (Socket para o qual respostas s\303\243o enviad) N
+(as.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (3.) S 40 T (Informa\303\247\303\265es de rede sobre o cliente.) N
+( *) N
+( * output) S 16 T (:) S 24 T (0 para continuar e -1 para encerrar a conex\303\243o.) N
+( */) N
+({) p n
+() S 8 T () S
+(char) k
+( msg[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( tmp[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( *tok;) p n
+() S 8 T () S
+(int) k
+( id, nota;) p n
+() S 8 T () S
+(int) k
+( i;) p n
+() N
+() S 8 T () S
+(if) K
+( \(\(tok = strtok\(cmd, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S
+(return) K
+( 0;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* entrando a posi\303\247\303\243o do cliente */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(posicao) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (cli_posx = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (cli_posy = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tratamento de erro na entrada das coordenadas */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(POSLIMMIN > cli_posx || cli_posx > POSLIMMAX) p n
+() S 8 T () S 16 T (|| POSLIMMIN > cli_posy || cli_posy > POSLIMMAX\) {) N
+() S 8 T () S 16 T () S 24 T (strncpy\(msg, ") S
+(Coordenadas devem estar entre ) str
+(", \(size_t\)\(30\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", POSLIMMIN\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strncat\(msg, ") S
+( e ) str
+(", \(size_t\)\(3\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", POSLIMMAX\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strcat\(msg, ") S
+(.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (cli_posx = -1;) N
+() S 8 T () S 16 T () S 24 T (cli_posy = -1;) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (strncpy\(msg, ") S
+(Posi\303\247\303\243o atual \() str
+(", \(size_t\)\(30\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", cli_posx\);) p n
+(servidor_info_udp.c) (Page 12/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (15/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (13-14) 16
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strncat\(msg, ") S
+(,) str
+(", \(size_t\)\(3\)\);) p n
+() S 8 T () S 16 T () S 24 T (memset\(tmp, 0, ) S
+(sizeof) K
+(\(tmp\)\);) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(tmp, ") S
+(%d) str
+(", cli_posy\);) p n
+() S 8 T () S 16 T () S 24 T (strncat\(msg, tmp, strlen\(tmp\)\);) N
+() S 8 T () S 16 T () S 24 T (strcat\(msg, ") S
+(\).\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando a lista das categorias existentes */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categorias) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T (i = listarCategorias\(\);) N
+() S 8 T () S 16 T (sendBusca\(i, S, R, 1\);) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando alguma listagem de estabelecimentos */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(buscar) str
+("\) == 0 || strcmp\(tok, ") p
+(listar) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* listar todos os estabelecimentos */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(todos) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T (i = buscar\(-1, -1, ) S
+(NULL) K
+(\);) p n
+() S 8 T () S 16 T () S 24 T (sendBusca\(i, S, R, 0\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(perto) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(/* listar todos os estabelecimentos a 100m */) c n
+() p 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(todos) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(cli_posx == -1 || cli_posy == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (strcpy\(msg, ") S
+(Informe sua posi\303\247\303\243o antes.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R, ) p
+(si) K n
+(zeof) S
+(\() p
+(struct) k
+( sockaddr_storage\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (i = buscar\(cli_posx, cli_posy, ) S
+(NULL) K
+(\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (sendBusca\(i, S, R, 0\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(else) K n
+() p 8 T () S 16 T () S 24 T () S
+(/* listar todos os estabelecimentos de um categoria) c n
+() S 8 T () S 16 T () S 24 T ( * e que estejam a menos de 100m */) N
+() p 8 T () S 16 T () S 24 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categoria) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(cli_posx == -1 || cli_posy == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (strcpy\(msg, ") S
+(Informe sua posi\303\247\303\243o antes.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R, ) p
+(si) K n
+(zeof) S
+(\() p
+(struct) k
+( sockaddr_storage\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+(servidor_info_udp.c) (Page 13/15) (Apr 30, 14 2:36) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () S 32 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (i = buscar\(cli_posx, cli_posy, tok\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (sendBusca\(i, S, R, 0\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K n
+() p 8 T () S 16 T () S
+(/* listar todos os estabelecimentos de um categoria */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(categoria) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T (i = buscar\(-1, -1, tok\);) N
+() S 8 T () S 16 T () S 24 T (sendBusca\(i, S, R, 0\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando informa\303\247\303\265es acerca do id */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(info) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( ,) str
+("\)\) != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T (id = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T (sendInfoID\(id, S, R\);) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* votando no id */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(votar) str
+("\) == 0\) {) p n
+() N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (id = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(if) K
+( \(\(tok = strtok\() p
+(NULL) K
+(, ") p
+( \\n\\r) str
+("\)\) == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( 0;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (nota = atoi\(tok\);) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tratamento de erro para nota fora do intervalo */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(0 > nota || nota > 10 \) {) p n
+() S 8 T () S 16 T () S 24 T (sprintf\(msg, ") S
+(Nota deve estar entre 0 e 10.\\n\\r) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(sendto\(S, msg, strlen\(msg\), 0, R, ) p
+(sizeof) K
+(\() p
+(struct) k
+( sock) p n
+(addr_storage\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T (perror\(") S
+(sendto) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(else) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (votarID\(id, nota, S, R\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K n
+() p 8 T () S
+(/* requisitando encerramento da conex\303\243o */) c n
+() p 8 T () S
+(if) K
+( \(strcmp\(tok, ") p
+(sair) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S
+(return) K
+( -1;) p n
+() S 8 T (}) N
+(}) N
+() N
+() N
+() N
+(/* === Fun\303\247\303\265es auxiliares de depura\303\247\303\243o ==================================== ) c n
+(*/) N
+() p n
+(void) k
+( DEBUG_printItem\(item_t *item\)) p n
+({) N
+(servidor_info_udp.c) (Page 14/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (16/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (15) 17
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (printf\(") S
+(*** item ***\\n) str
+("\);) p n
+() S 8 T (printf\(") S
+(Id: %d\\t) str
+(", item->id\);) p n
+() S 8 T (printf\(") S
+(Posi\303\247\303\243o: %d,%d\\n) str
+(", item->posx, item->posy\);) p n
+() S 8 T (printf\(") S
+(Categoria: %s\\t) str
+(", item->categoria\);) p n
+() S 8 T (printf\(") S
+(Nome: %s\\n) str
+(", item->nome\);) p n
+() S 8 T (printf\(") S
+(Endere\303\247o: %s\\n) str
+(", item->endereco\);) p n
+() S 8 T (printf\(") S
+(Pontos acumul.: %d\\t) str
+(", item->pontuacao\);) p n
+() S 8 T (printf\(") S
+(Total de votos: %d\\n) str
+(", item->votos\);) p n
+() S 8 T (printf\(") S
+(\\n) str
+("\);) p n
+(}) N
+(servidor_info_udp.c) (Page 15/15) (Apr 30, 14 2:36) title
+border
+grestore
+(Printed by ) rhead
+(servidor_info_udp.c) (17/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 18
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <unistd.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <string.h>) p n
+(#include) K
+( <sys/types.h>) p n
+(#include) K
+( <sys/socket.h>) p n
+(#include) K
+( <netinet/in.h>) p n
+(#include) K
+( <netdb.h>) p n
+(#include) K
+( <arpa/inet.h>) p n
+() N
+() N
+() N
+(#define) K
+( BUFLEN 1024) p n
+() N
+() N
+() N
+(/* === Tipos auxiliares =================================================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k n
+({) p n
+() S 8 T (FALSE = 0,) N
+() S 8 T (TRUE = 1) N
+(} bool_t;) N
+() N
+() N
+() N
+(/* === Ferramentas para tratamento de erros =============================== */) c n
+() p n
+(typedef) K
+( ) p
+(enum) k
+( {) p n
+(    NO_ERROR = 0,) N
+(    USAGE_ERROR,) N
+(    PORT_OUT_RANGE,) N
+(    CONNECT_ERROR,) N
+(    MYERROR_LIM) N
+() N
+(} my_error_t;) N
+() N
+(const) K
+( ) p
+(char) k
+(* my_error_desc[] =) p n
+({) N
+(    "",) N
+(    ") S
+(usage: ./cliente_info_tcp <port number>) str
+(",) p n
+(    ") S
+(error: port number must be between 1 and 8000) str
+(",) p n
+(    ") S
+(error: failed to connect) str
+(") p n
+(    "") N
+(};) N
+() N
+(void) k
+( pMyError\(my_error_t e, ) p
+(const) K
+( ) p
+(char) k
+( *function\)) p n
+({) N
+(    ) S
+(if) K
+(\(NO_ERROR < e && e < MYERROR_LIM\) {) p n
+(    ) S 8 T (fprintf\(stderr, ") S
+(%s: %s.\\n) str
+(", function, my_error_desc[e]\);) p n
+(    }) N
+(}) N
+() N
+() N
+() N
+(static) K
+( ) p
+(int) k
+( msg_seq;) p n
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Pragmas das fun\303\247\303\265es ================================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+(int) k
+( msgSeq\() p
+(void) k
+(\);) p n
+(int) k
+( connectUDP\() p
+(char) k
+( *endIP, ) p
+(char) k
+( *port\);) p n
+() N
+() N
+(cliente_info_udp.c) (Page 1/5) (Apr 30, 14 2:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(/* ========================================================================) c n
+( * === MAIN ===============================================================) N
+( * ======================================================================== */) N
+() p n
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+() S 8 T () S
+(int) k
+( sock;) p n
+() N
+() S 8 T (fd_set rfds0, rfds1;) N
+() S 8 T () S
+(struct) k
+( timeval tv;) p n
+() N
+() S 8 T () S
+(int) k
+( maxfd, rval;) p n
+() N
+() S 8 T () S
+(char) k
+( msg[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( cmd[BUFLEN];) p n
+() S 8 T () S
+(char) k
+( buf[BUFLEN];) p n
+() S 8 T () S
+(int) k
+( len;) p n
+() N
+() S 8 T () S
+(int) k
+( i, n;) p n
+() N
+() S 8 T (bool_t server_ready;) N
+() N
+() S 8 T (fd_set tmp_fds;) N
+() S 8 T () S
+(char) k
+( ack_msg[9];) p n
+() S 8 T () S
+(struct) k
+( timeval tv1;) p n
+() N
+() S 8 T (tv1.tv_sec = 1;) N
+() S 8 T (tv1.tv_usec = 0;) N
+() N
+() N
+() N
+() S 8 T () S
+(/* verificando argumentos */) c n
+() p 8 T () S
+(if) K
+( \(argc < 3\) {) p n
+() S 8 T () S 16 T (pMyError\(USAGE_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (i = atoi\(argv[2]\);) N
+() S 8 T () S
+(if) K
+( \(0 >= i && i > 8000\) {) p n
+() S 8 T () S 16 T (pMyError\(PORT_OUT_RANGE, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (sock = connectUDP\(argv[1], argv[2]\);) N
+() N
+() S 8 T (maxfd = fileno\(stdin\);) N
+() S 8 T (maxfd = \(maxfd < sock\) ? sock : maxfd;) N
+() N
+() S 8 T (FD_ZERO\(&rfds0\);) N
+() N
+() S 8 T (FD_SET\(fileno\(stdin\), &rfds0\);) N
+() S 8 T (FD_SET\(sock, &rfds0\);) N
+() N
+() S 8 T (tv.tv_sec = 0;) N
+() S 8 T (tv.tv_usec = 0;) N
+() N
+() S 8 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() N
+() S 8 T (server_ready = TRUE;) N
+() N
+() S 8 T () S
+(while) K
+( \(1\) {) p n
+() N
+() S 8 T () S 16 T (rfds1 = rfds0;) N
+() N
+(        ) S
+(if) K
+( \(\(rval = select\(maxfd + 1, &rfds1, ) p
+(NULL) K
+(, ) p
+(NULL) K
+(, &tv\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(select) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (exit\(EXIT_FAILURE\);) N
+() S 8 T () S 16 T (}) N
+(cliente_info_udp.c) (Page 2/5) (Apr 30, 14 2:35) title
+border
+grestore
+(Printed by ) rhead
+(cliente_info_udp.c) (18/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 19
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S
+(else) K
+( ) p
+(if) K
+( \(rval > 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(FD_ISSET\(fileno\(stdin\), &rfds1\) && server_ready\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T (memset\(cmd, 0, ) S
+(sizeof) K
+(\(cmd\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (fgets\(cmd, BUFLEN, stdin\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/* encerra o cliente */) c n
+() p 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(strcmp\(cmd, ") p
+(sair\\n) str
+("\) == 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/* etiqueta a mensagem com o n\303\272mero de sequ\303\252nc) c n
+(ia */) N
+() p 8 T () S 16 T () S 24 T () S 32 T (sprintf\(msg, ") S
+(%.6d) str
+(", msgSeq\(\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (strncat\(msg, cmd, strlen\(cmd\)\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(send\(sock, msg, strlen\(msg\), 0\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (perror\(") S
+(send) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T (FD_ZERO\(&tmp_fds\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/* espera pelo ACK do servidor */) c n
+() p 8 T () S 16 T () S 24 T () S 32 T () S
+(while) K
+( \(1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (FD_SET\(sock, &tmp_fds\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (i = select\(sock+1, &tmp_fds, ) S
+(NULL) K
+(, ) p
+(NULL) K
+(,) p n
+( &tv1\);) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(if) K
+( \( i > 0\) {) p n
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(if) K
+( \(\(len = recv\(sock, buf, 9, 0\)) p n
+(\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S 56 T (perror\(") S
+(recv) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (sprintf\(ack_msg, ") S
+(ACK%.6d) str
+(", msg_) p n
+(seq\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(if) K
+( \(strncmp\(ack_msg, buf, \(size_) p n
+(t\)\(9\)\) == 0\) {) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S 56 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(else) K
+( ) p
+(if) K
+( \(i <= 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (puts\(") S
+(Sem resposta do servidor.) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(break) K
+(;) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T (server_ready = FALSE;) N
+() N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(if) K
+( \(FD_ISSET\(sock, &rfds1\)\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (memset\(buf, 0, ) S
+(sizeof) K
+(\(buf\)\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(\(len = recv\(sock, buf, BUFLEN, 0\)\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (perror\(") S
+(recv) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+( \(strstr\(buf, ") p
+(SERVER_READY\\n\\r) str
+("\) != ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (server_ready = TRUE;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(else) K
+( ) p
+(if) K
+( \(strcmp\(buf, ") p
+(\\n) str
+("\) != 0 || strcmp\(buf, ") p
+(\\) str n
+(r) S
+("\) != 0\) {) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (printf\(") S
+(%s) str
+(", buf\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() N
+() S 8 T () S 16 T (}) N
+(cliente_info_udp.c) (Page 3/5) (Apr 30, 14 2:35) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(return) K
+( 0;) p n
+(}) N
+() N
+() N
+() N
+(/* ========================================================================) c n
+( * === Implementa\303\247\303\243o das fun\303\247\303\265es ==========================================) N
+( * ======================================================================== */) N
+() p n
+(/* === Fun\303\247\303\265es auxiliares de networking =================================== */) c n
+() p n
+(int) k
+( msgSeq\() p
+(void) k
+(\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Retorna um inteiro entre 0 e 999 999 para ser usado como) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (identificador de mensagens.) N
+( *) N
+( * params) S 16 T (:) S 24 T (Nenhum.) N
+( *) N
+( * output) S 16 T (:) S 24 T (Inteiro \(mod 1 000 000\).) N
+( */) N
+( {) p n
+() S 8 T () S
+(if) K
+( \(++msg_seq > 999999\) {) p n
+() S 8 T () S 16 T (msg_seq = 0;) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(return) K
+( msg_seq;) p n
+(}) N
+() N
+() N
+(int) k
+( connectUDP\() p
+(char) k
+( *endIP, ) p
+(char) k
+( *port\)) p n
+(/*) c n
+( * desc) S 8 T () S 16 T (:) S 24 T (Conecta a um endere\303\247o IP e porta a um socket a ser reto) N
+(rnado.) N
+( *) N
+( * params) S 16 T (:) S 24 T (1.) S 32 T (String contendo o endere\303\247o IP a ser usado.) N
+( * ) S 8 T () S 16 T () S 24 T () S 32 T (2.) S 40 T (String contendo a porta a ser usada.) N
+( *) N
+( * output) S 16 T (:) S 24 T (O socket da conex\303\243o criada.) N
+( */) N
+({) p n
+() S 8 T () S
+(int) k
+( socket_fd;) p n
+() S 8 T () S
+(struct) k
+( addrinfo hints, *servinfo, *p;) p n
+() S 8 T () S
+(int) k
+( status;) p n
+() N
+() S 8 T () S
+(/* inicialmente retornando erro */) c n
+() p 8 T (socket_fd = -1;) N
+() N
+() S 8 T () S
+(/* estrutura a ser usada para obter um endere\303\247o IP */) c n
+() p 8 T (memset\(&hints, 0, ) S
+(sizeof) K
+(\(hints\)\);) p n
+() S 8 T (hints.ai_family = AF_INET;) S 40 T () S 48 T () S 56 T () S
+(/* IPv4 */) c n
+() p 8 T (hints.ai_socktype = SOCK_DGRAM;) S 40 T () S 48 T () S
+(/* UDP */) c n
+() p n
+() S 8 T () S
+(/* obtem a lista ligada com as associa\303\247\303\265es poss\303\255veis */) c n
+() p 8 T () S
+(if) K
+( \(\(status = getaddrinfo\(endIP, port, &hints, &servinfo\)\) != 0\) {) p n
+() S 8 T () S 16 T (fprintf\(stderr, ") S
+(%s: getaddrinfo error: %s\\n) str
+(", __func__, gai_strerror\(st) p n
+(atus\)\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* percorre servinfo tentando se conectar */) c n
+() p 8 T () S
+(for) K
+( \(p = servinfo; p != ) p
+(NULL) K
+(; p = p->ai_next\) {) p n
+() N
+() S 8 T () S 16 T () S
+(/* tenta obter um socket */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(\(socket_fd = socket\(p->ai_family, p->ai_socktype, p->ai_prot) p n
+(ocol\)\) == -1\) {) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(socket) str
+("\);) p n
+(cliente_info_udp.c) (Page 4/5) (Apr 30, 14 2:35) title
+border
+grestore
+(Printed by ) rhead
+(cliente_info_udp.c) (19/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5) 20
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(/* tenta se conectar ao endere\303\247o IP dado */) c n
+() p 8 T () S 16 T () S
+(if) K
+( \(connect\(socket_fd, p->ai_addr, p->ai_addrlen\) == -1\) {) p n
+() S 8 T () S 16 T () S 24 T (close\(socket_fd\);) N
+() S 8 T () S 16 T () S 24 T (perror\(") S
+(connect) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(continue) K
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T () S
+(break) K
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/* tratamento de erro caso o bind falhe */) c n
+() p 8 T () S
+(if) K
+( \(p == ) p
+(NULL) K
+(\) {) p n
+() S 8 T () S 16 T (pMyError\(CONNECT_ERROR, __func__\);) N
+() S 8 T () S 16 T (exit\(EXIT_FAILURE\);) N
+() S 8 T (}) N
+() N
+() S 8 T (freeaddrinfo\(servinfo\);) N
+() N
+() S 8 T () S
+(return) K
+( socket_fd;) p n
+(}) N
+(cliente_info_udp.c) (Page 5/5) (Apr 30, 14 2:35) title
+border
+grestore
+(Printed by ) rhead
+(cliente_info_udp.c) (20/20) (Wednesday April 30, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

@@ -40,7 +40,7 @@ const char* my_error_desc[] =
 {
     "",
     "usage: ./cliente_info_tcp <port number>",
-    "error: port number must be between 1 and 1024",
+    "error: port number must be between 1 and 8000",
     "error: failed to connect"
     ""
 };
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	}
 
 	i = atoi(argv[2]);
-	if (0 >= i && i > 1024) {
+	if (0 >= i && i > 8000) {
 		pMyError(PORT_OUT_RANGE, __func__);
 		exit(EXIT_FAILURE);
 	}
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 				server_ready = FALSE;
 
 			}
-			else if (FD_ISSET(sock, &rfds1)) {
+			if (FD_ISSET(sock, &rfds1)) {
 				memset(buf, 0, sizeof(buf));
 				if ((len = recv(sock, buf, BUFLEN, 0)) == -1) {
 					perror("recv");

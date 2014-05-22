@@ -1,0 +1,2147 @@
+%!PS-Adobe-3.0
+%%Title: serveco.c, cliente.c, myNetworking.h, auxf.c, wrapsock.c
+%%For: 
+%%Creator: a2ps version 4.14
+%%CreationDate: Thu May 22 02:50:30 2014
+%%BoundingBox: 24 24 588 768
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 8
+%%PageOrder: Ascend
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 612 def
+/sw 792 def
+/llx 24 def
+/urx 768 def
+/ury 588 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 7.493857 def
+/cw 4.496314 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   522.321860 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/* ServEco) c n
+( *) N
+( * MC833 - Programacao em Redes de Computadores) N
+( * Exercicio 7: Servidor de Eco TCP/UDP) N
+( *) N
+( * Autor: Raul Rabelo Carvalho, 105607) N
+( */) N
+() p n
+(#include) K
+( ") p
+(myNetworking.h) str
+(") p n
+() N
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+(  ) S
+(/* Variaveis para estabelecimento dos sockets: */) c n
+(  ) p
+(int) k
+( port;) p n
+(  ) S
+(int) k
+( sock_tcp, sock_udp, sock_tcp_c;) p n
+(  ) S
+(int) k
+( optval_tcp = 1, optval_udp = 1;) p n
+(  ) S
+(struct) k
+( sockaddr_in srv_tcp, srv_udp, cli_tcp, cli_udp;) p n
+(  ) S
+(unsigned) k
+( ) p
+(int) k
+( cli_tcp_sz, cli_udp_sz;) p n
+() N
+(  ) S
+(/* Variaveis para fork do processo: */) c n
+(  ) p
+(struct) k
+( sigaction sa;) p n
+(  pid_t pid;) N
+() N
+(  ) S
+(/* Variaveis para selecionar TCP ou UDP: */) c n
+(  fd_set rfds0, rfds1;) p n
+(  ) S
+(struct) k
+( timeval tv;) p n
+(  ) S
+(int) k
+( maxfd, rval;) p n
+() N
+(  ) S
+(/* Variaveis gerais: */) c n
+(  bool isClosing;) p n
+(  ) S
+(char) k
+( buf_str[BUFSIZE];) p n
+(  ) S
+(int) k
+(  buf_len;) p n
+() N
+(/* ------------------------------------------------------------------------ */) c n
+() p n
+(  isClosing = FALSE;) N
+() N
+(  ) S
+(/* Configura o handler para encerrar os procesos-zumbis: */) c n
+(  signalHandler\(&sa\);) p n
+() N
+(  ) S
+(/* Configura a porta a ser usada: */) c n
+(  port = srvArgs\(argc, argv\);) p n
+() N
+(  ) S
+(/* Cria e configura o socket TCP: */) c n
+(  sock_tcp = Socket\(PF_INET, SOCK_STREAM, IPPROTO_TCP\);) p n
+() N
+(  Setsockopt\(sock_tcp, SOL_SOCKET, SO_REUSEADDR, &optval_tcp, ) S
+(sizeof) K
+(\() p
+(int) k
+(\)\);) p n
+() N
+(  memset\(&srv_tcp, 0, ) S
+(sizeof) K
+(\(srv_tcp\)\);) p n
+(  srv_tcp.sin_addr.s_addr = INADDR_ANY;) N
+(  srv_tcp.sin_port        = htons\(port\);) N
+(  srv_tcp.sin_family      = PF_INET;) N
+() N
+(  Bind\(sock_tcp, \(SA *\)&srv_tcp, ) S
+(sizeof) K
+(\(srv_tcp\)\);) p n
+() N
+(  Listen\(sock_tcp, BACKLOG\);) N
+() N
+(  ) S
+(/* Cria e configura o socket UDP: */) c n
+(  sock_udp = Socket\(PF_INET, SOCK_DGRAM, IPPROTO_UDP\);) p n
+() N
+(  Setsockopt\(sock_udp, SOL_SOCKET, SO_REUSEADDR, &optval_udp, ) S
+(sizeof) K
+(\() p
+(int) k
+(\)\);) p n
+() N
+(  memset\(&srv_udp, 0, ) S
+(sizeof) K
+(\(srv_udp\)\);) p n
+(  srv_udp.sin_addr.s_addr = INADDR_ANY;) N
+(  srv_udp.sin_port        = htons\(port\);) N
+(  srv_udp.sin_family      = PF_INET;) N
+() N
+(  Bind\(sock_udp, \(SA *\)&srv_udp, ) S
+(sizeof) K
+(\(srv_tcp\)\);) p n
+() N
+(serveco.c) (Page 1/3) (May 22, 14 1:58) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(  ) p
+(/* Configurando o select para os sockets TCP e UDP: */) c n
+(  maxfd = \(sock_tcp > sock_udp\) ? sock_tcp : sock_udp;) p n
+(  FD_ZERO\(&rfds0\);) N
+(  FD_SET\(sock_tcp, &rfds0\);) N
+(  FD_SET\(sock_udp, &rfds0\);) N
+(  tv.tv_sec = 0;) N
+(  tv.tv_usec = 0;) N
+() N
+(  memset\(buf_str, 0, ) S
+(sizeof) K
+(\(buf_str\)\);) p n
+() N
+(  ) S
+(while) K
+( \(1\)) p n
+(  {) N
+(    rfds1 = rfds0;) N
+() N
+(    ) S
+(/* Verifica se ha conexoes TCP ou mensagens UDP: */) c n
+(    rval = Select\(maxfd + 1, &rfds1, ) p
+(NULL) K
+(, ) p
+(NULL) K
+(, &tv\);) p n
+() N
+(    ) S
+(if) K
+( \(rval > 0 && FD_ISSET\(sock_tcp, &rfds1\)\)) p n
+(    ) S
+(/* Caso TCP: */) c n
+(    {) p n
+(      rval--;) N
+() N
+(      ) S
+(/* Aceita a conexao com o cliente TCP: */) c n
+(      cli_tcp_sz = ) p
+(sizeof) K
+(\(cli_tcp\);) p n
+(      sock_tcp_c = Accept\(sock_tcp, \(SA *\)&cli_tcp, &cli_tcp_sz\);) N
+() N
+(      ) S
+(/* Cria um processo filho para atender ao cliente TCP: */) c n
+(      pid = Fork\(\);) p n
+() N
+(      ) S
+(if) K
+( \(pid == 0\)) p n
+(      ) S
+(/* Caso seja o processo-filho: */) c n
+(      {) p n
+(        ) S
+(/* Fecha a conexao de escuta: */) c n
+(        close\(sock_tcp\);) p n
+() N
+(        ) S
+(/* Loop sobre as mensagens recebidas: */) c n
+(        ) p
+(while) K
+( \(\(buf_len = Recv\(sock_tcp_c, buf_str, ) p
+(sizeof) K
+(\(buf_str\), 0\)\) > 0\)) p n
+(        {) N
+(          ) S
+(/* Encerra a conexao: */) c n
+(          ) p
+(if) K
+( \(\(isClosing = isExit\(buf_str\)\)\)) p n
+(            ) S
+(break) K
+(;) p n
+() N
+(          ) S
+(/* Envia o eco. */) c n
+(          Send\(sock_tcp_c, buf_str, buf_len, 0\);) p n
+() N
+(          memset\(buf_str, 0, ) S
+(sizeof) K
+(\(buf_str\)\);) p n
+(        }) N
+() N
+(        ) S
+(/* Fecha a conexao com o cliente: */) c n
+(        close\(sock_tcp_c\);) p n
+(        isClosing = TRUE;) N
+(      }) N
+(      ) S
+(else) K n
+(      ) p
+(/* Caso seja o processo-pai: */) c n
+(      {) p n
+(        ) S
+(/* Encerra a conexao com o cliente TCP: */) c n
+(        close\(sock_tcp_c\);) p n
+(      }) N
+(    }) N
+() N
+(    ) S
+(if) K
+( \(rval > 0 && FD_ISSET\(sock_udp, &rfds1\)\)) p n
+(    ) S
+(/* Caso UDP: */) c n
+(    {) p n
+(      rval--;) N
+() N
+(      ) S
+(/* Recebe mensagem UPD: */) c n
+(      cli_udp_sz = ) p
+(sizeof) K
+(\(cli_udp\);) p n
+(      buf_len = Recvfrom\(sock_udp, buf_str, ) S
+(sizeof) K
+(\(buf_str\), 0, \(SA *\)&cli_udp, ) p n
+(&cli_udp_sz\);) N
+(serveco.c) (Page 2/3) (May 22, 14 1:58) title
+border
+grestore
+(Printed by ) rhead
+(serveco.c) (1/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(      ) S
+(/* Envia o eco: */) c n
+(      Sendto\(sock_udp, buf_str, strlen\(buf_str\), 0, \(SA *\)&cli_udp, cli_udp_sz\);) p n
+() N
+(      memset\(buf_str, 0, ) S
+(sizeof) K
+(\(buf_str\)\);) p n
+(    }) N
+() N
+(    ) S
+(/* Encerra o servidor-filho a pedido do cliente TCP: */) c n
+(    ) p
+(if) K
+( \(isClosing\) ) p
+(break) K
+(;) p n
+(  }) N
+() N
+(  close\(sock_udp\);) N
+() N
+(  ) S
+(return) K
+( 0;) p n
+(}) N
+(serveco.c) (Page 3/3) (May 22, 14 1:58) title
+border
+grestore
+(Printed by ) rhead
+(serveco.c) (2/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/* Cliente) c n
+( *) N
+( * MC833 - Programacao em Redes de Computadores) N
+( * Exercicio 7: Servidor de Eco TCP/UDP) N
+( *) N
+( * Autor: Raul Rabelo Carvalho, 105607) N
+( */) N
+() p n
+(#include) K
+( ") p
+(myNetworking.h) str
+(") p n
+() N
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+(  ) S
+(/* Variaveis com os dados do servidor: */) c n
+(  proto_t proto;) p n
+(  ) S
+(char) k
+( *addr;) p n
+(  ) S
+(int) k
+( port;) p n
+() N
+(  ) S
+(/* Variaveis para conexao de rede: */) c n
+(  ) p
+(int) k
+( sock;) p n
+(  ) S
+(int) k
+( optval = 1;) p n
+(  ) S
+(struct) k
+( sockaddr_in srv_addr;) p n
+() N
+(  ) S
+(/* Variaveis gerais: */) c n
+(  ) p
+(char) k
+( line[MAXLINE];) p n
+(  ) S
+(char) k
+( buf_str[BUFSIZE];) p n
+(  ) S
+(int) k
+(  buf_len;) p n
+() N
+(/* ------------------------------------------------------------------------ */) c n
+() p n
+(  ) S
+(/* Coleta os dados do servidor: */) c n
+(  proto = cliArgs\(&addr, &port, argc, argv\);) p n
+() N
+(  ) S
+(/* Cria o socket com o protocolo escolhido: */) c n
+(  ) p
+(if) K
+( \(proto == TCP\)) p n
+(    sock = Socket\(PF_INET, SOCK_STREAM, IPPROTO_TCP\);) N
+(  ) S
+(else) K
+( ) p
+(if) K
+( \(proto == UDP\)) p n
+(    sock = Socket\(PF_INET, SOCK_DGRAM, IPPROTO_UDP\);) N
+() N
+(  ) S
+(/* Configura o socket para reutilizar o mesmo endereco IP: */) c n
+(  Setsockopt\(sock, SOL_SOCKET, SO_REUSEADDR, &optval, ) p
+(sizeof) K
+(\() p
+(int) k
+(\)\);) p n
+() N
+(  ) S
+(/* Configura os dados do servidor: */) c n
+(  memset\(&srv_addr, 0, ) p
+(sizeof) K
+(\(srv_addr\)\);) p n
+(  srv_addr.sin_addr.s_addr = inet_addr\(addr\);) N
+(  srv_addr.sin_port        = htons\(port\);) N
+(  srv_addr.sin_family      = PF_INET;) N
+() N
+(  ) S
+(/* Conecta ao servidor: */) c n
+(  Connect\(sock, \(SA *\)&srv_addr, ) p
+(sizeof) K
+(\(srv_addr\)\);) p n
+() N
+(  ) S
+(/* Loop sobre a entrada de mensagens: */) c n
+(  ) p
+(while) K
+( \(fgets\(line, MAXLINE, stdin\) != ) p
+(NULL) K
+(\)) p n
+(  {) N
+(    ) S
+(/* Envia a mensagem ao servidor: */) c n
+(    Send\(sock, line, strlen\(line\), 0\);) p n
+() N
+(    ) S
+(if) K
+( \(isExit\(line\)\) ) p
+(break) K
+(;) p n
+() N
+(    ) S
+(/* Recebe o eco do servidor: */) c n
+(    buf_len = Recv\(sock, buf_str, BUFSIZE, 0\);) p n
+() N
+(    ) S
+(/* Imprime o eco: */) c n
+(    buf_str[buf_len++] = 0;) p n
+(    printf\(") S
+(%s) str
+(", buf_str\);) p n
+(  }) N
+() N
+(  ) S
+(return) K
+( 0;) p n
+(}) N
+(cliente.c) (Page 1/1) (May 22, 14 2:03) title
+border
+grestore
+(Printed by ) rhead
+(cliente.c) (3/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/* myNetworking header) c n
+( *) N
+( * MC833 - Programacao em Redes de Computadores) N
+( * Exercicio 7: Servidor de Eco TCP/UDP) N
+( *) N
+( * Autor: Raul Rabelo Carvalho, 105607) N
+( */) N
+() p n
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <unistd.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <string.h>) p n
+(#include) K
+( <ctype.h>) p n
+(#include) K
+( <signal.h>) p n
+(#include) K
+( <sys/wait.h>) p n
+(#include) K
+( <sys/types.h>) p n
+(#include) K
+( <sys/socket.h>) p n
+(#include) K
+( <sys/select.h>) p n
+(#include) K
+( <arpa/inet.h>) p n
+(#include) K
+( <netinet/in.h>) p n
+(#include) K
+( <netdb.h>) p n
+(#include) K
+( <poll.h>) p n
+() N
+(/* Tamanho maximo dos buffers: */) c n
+(#define) K
+( MAXLINE 4096) p n
+(#define) K
+( BUFSIZE 8192) p n
+() N
+(/* Porta de comunicacao padrao: */) c n
+(#define) K
+( STD_PORT_NUM  49151) p n
+(#define) K
+( STD_PORT_STR  ") p
+(49151) str
+(") p n
+() N
+(#define) K
+( BACKLOG 1024) p n
+() N
+(#define) K
+( SA  ) p
+(struct) k
+( sockaddr) p n
+() N
+(/* Macros para o segundo parametro de Shutdown: */) c n
+(#define) K
+( SHUTRECV 0 ) p
+(/* further receives are disallowed */) c n
+(#define) K
+( SHUTSEND 1 ) p
+(/* further sends are disallowed */) c n
+(#define) K
+( SHUTBOTH 2 ) p
+(/* further sends and receives are disallowed */) c n
+() p n
+(#ifndef) K
+( MYNETWORKING_H_INCLUDED) p n
+(#define) K
+( MYNETWORKING_H_INCLUDED) p n
+() N
+(/* Definicao de um tipo booleano: */) c n
+(typedef) K
+( ) p
+(enum) k
+( { FALSE = 0, TRUE = 1 } bool;) p n
+() N
+(/* Definicao de um tipo protocolo: */) c n
+(typedef) K
+( ) p
+(enum) k
+( { TCP = 0, UDP = 1 } proto_t;) p n
+() N
+(/* Pragmas das funcoes auxiliares: */) c n
+(int) k
+( srvArgs\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\);) p n
+(proto_t cliArgs\() S
+(char) k
+( **addr, ) p
+(int) k
+( *port, ) p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\);) p n
+(void) k
+( signalHandler\() p
+(struct) k
+( sigaction *sa\);) p n
+(pid_t Fork\(\);) N
+(bool isExit\() S
+(const) K
+( ) p
+(char) k
+( *msg\);) p n
+() N
+(/* Pragmas das funcoes wrapper de rede: */) c n
+(int) k
+( Accept\() p
+(int) k
+( fd, ) p
+(struct) k
+( sockaddr *sa, socklen_t *salenptr\);) p n
+(void) k
+( Bind\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(struct) k
+( sockaddr *sa, socklen_t salen\);) p n
+(void) k
+( Connect\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(struct) k
+( sockaddr *sa, socklen_t salen\);) p n
+(void) k
+( Listen\() p
+(int) k
+( fd, ) p
+(int) k
+( backlog\);) p n
+(ssize_t Recv\() S
+(int) k
+( fd, ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags\);) p n
+(ssize_t Recvfrom\() S
+(int) k
+( fd, ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags, ) p
+(struct) k
+( sockaddr *s) p n
+(a, socklen_t *salenptr\);) N
+(int) k
+( Select\() p
+(int) k
+( nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, ) p
+(struc) k n
+(t) S
+( timeval *timeout\);) p n
+(void) k
+( Send\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags\);) p n
+(void) k
+( Sendto\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags, ) p
+(const) K
+( ) p
+(struct) k
+( sock) p n
+(myNetworking.h) (Page 1/2) (May 22, 14 2:07) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(addr *sa, socklen_t salen\);) p n
+(void) k
+( Setsockopt\() p
+(int) k
+( fd, ) p
+(int) k
+( level, ) p
+(int) k
+( optname, ) p
+(const) K
+( ) p
+(void) k
+( *optval, socklen_t op) p n
+(tlen\);) N
+(int) k
+( Socket\() p
+(int) k
+( family, ) p
+(int) k
+( type, ) p
+(int) k
+( protocol\);) p n
+() N
+(#endif) K n
+() p n
+() N
+(myNetworking.h) (Page 2/2) (May 22, 14 2:07) title
+border
+grestore
+(Printed by ) rhead
+(myNetworking.h) (4/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/* AuxF) c n
+( *) N
+( * MC833 - Programacao em Redes de Computadores) N
+( * Exercicio 7: Servidor de Eco TCP/UDP) N
+( *) N
+( * Autor: Raul Rabelo Carvalho, 105607) N
+( */) N
+() p n
+(#include) K
+( ") p
+(myNetworking.h) str
+(") p n
+() N
+(/* ------------------------------------------------------------------------ */) c n
+() p n
+(char) k
+( *strdup\() p
+(const) K
+( ) p
+(char) k
+( *s\)) p n
+({) N
+(  size_t len = 1 + strlen\(s\);) N
+(  ) S
+(char) k
+( *p = malloc\(len\);) p n
+(  ) S
+(return) K
+( p ? memcpy\(p, s, len\) : ) p
+(NULL) K
+(;) p n
+(}) N
+() N
+(/* --- srvArgs\(\) ----------------------------------------------------------) c n
+( *) N
+( * desc   : Verifica e processa os argumentos do servidor.) N
+( *) N
+( * params : 1. Numero de argumentos passados.) N
+( *          2. Vetor com os argumentos.) N
+( *) N
+( * output : Inteiro com o numero da porta de conexao do servidor.) N
+( */) N
+(int) k
+( srvArgs\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+(  ) S
+(int) k
+(  port;) p n
+() N
+(  ) S
+(if) K
+( \(argc != 1 && argc != 2\)) p n
+(  {) N
+(    perror\(") S
+(Error! Usage: 'servidor <PORT>' ou 'servidor') str
+("\);) p n
+(    exit\(EXIT_FAILURE\);) N
+(  }) N
+() N
+(  port = argc > 1 ? atoi\(argv[1]\) : 0;) N
+() N
+(  ) S
+(if) K
+( \(1024 > port || port > 49151\)) p n
+(    port = STD_PORT_NUM;) N
+() N
+(  ) S
+(return) K
+( port;) p n
+(}) N
+() N
+(/* --- cliArgs\(\) ----------------------------------------------------------) c n
+( *) N
+( * desc   : Verifica e processa os argumentos do cliente.) N
+( *) N
+( * params : 1. \(Saida da funcao.\) Ponteiro para string com o endereco IP.) N
+( *          2. \(Saida da funcao.\) Ponteiro para o inteiro com a porta.) N
+( *          3. Numero de argumentos passados.) N
+( *          4. Vetor com os argumentos.) N
+( *) N
+( * output : Tipo proto_t indica qual protocolo deve ser usado:) N
+( *          TCP equivale ao inteiro 0 e UDP ao inteiro 1.) N
+( */) N
+(proto_t cliArgs\() p
+(char) k
+( **addr, ) p
+(int) k
+( *port, ) p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\)) p n
+({) N
+(  proto_t proto;) N
+(  ) S
+(char) k
+( *c;) p n
+() N
+(  ) S
+(if) K
+( \(argc != 3 && argc != 4\)) p n
+(  {) N
+(    perror\(") S
+(Error! Usage: 'cliente <PROTOCOL> <IP_ADDR> <PORT>') str
+("\);) p n
+(    exit\(EXIT_FAILURE\);) N
+(  }) N
+() N
+(auxf.c) (Page 1/3) (May 22, 14 2:50) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(  c = argv[1];) p n
+(  ) S
+(for) K
+( \( ; *c; ++c\) *c = tolower\(*c\);) p n
+() N
+(  ) S
+(/* Seleciona o protocolo: */) c n
+(  ) p
+(if) K
+( \(strncmp\(argv[1], ") p
+(tcp) str
+(", 3\) == 0\)) p n
+(    proto = TCP;) N
+(  ) S
+(else) K
+( ) p
+(if) K
+( \(strncmp\(argv[1], ") p
+(udp) str
+(", 3\) == 0\)) p n
+(    proto = UDP;) N
+(  ) S
+(else) K n
+(  {) p n
+(    perror\(") S
+(Error! The protocol must be either TCP or UDP) str
+("\);) p n
+(    exit\(EXIT_FAILURE\);) N
+(  }) N
+() N
+(  ) S
+(/* Retora endereco IP: */) c n
+(  *addr = strdup\(argv[2]\);) p n
+() N
+(  ) S
+(/* Seleciona a porta: */) c n
+(  *port = argc > 3 ? atoi\(argv[3]\) : 0;) p n
+(  ) S
+(if) K
+( \(1024 > *port || *port > 49151\)) p n
+(    *port = STD_PORT_NUM;) N
+() N
+(  ) S
+(return) K
+( proto;) p n
+(}) N
+() N
+(/* --- signalHandler\(\) ----------------------------------------------------) c n
+( *) N
+( * desc   :  Configura o processo para ser encerrado caso fique inativo.) N
+( *) N
+( * params : 1. Estrutura na qual se configura como sinais do UNIX ser\303\243o) N
+( *             tratados.) N
+( *) N
+( * output : Nenhuma.) N
+( *) N
+( */) N
+(void) k
+( signalHandler\() p
+(struct) k
+( sigaction *sa\)) p n
+({) N
+(  sa->sa_handler = SIG_DFL;) N
+(  sigemptyset\(&sa->sa_mask\);) N
+(  sa->sa_flags = SA_NOCLDWAIT;) N
+(  ) S
+(if) K
+( \(sigaction\(SIGCHLD, sa, ) p
+(NULL) K
+(\) == -1\) {) p n
+(    perror\(") S
+(sigaction error) str
+("\);) p n
+(    exit\(1\);) N
+(  }) N
+(}) N
+() N
+(/* --- Fork\(\) -------------------------------------------------------------) c n
+( *) N
+( * desc   : Cria uma copia do processo corrente.) N
+( *) N
+( * params : Nenhum.) N
+( *) N
+( * output : Identificador do processo-filho.) N
+( */) N
+(pid_t Fork\(\)) p n
+({) N
+(  pid_t pid = fork\(\);) N
+(  ) S
+(if) K
+( \(pid < 0\) {) p n
+(    perror\(") S
+(fork) str
+("\);) p n
+(    exit\(EXIT_FAILURE\);) N
+(  }) N
+() N
+(  ) S
+(return) K
+( pid;) p n
+(}) N
+() N
+(/* --- isExit\(\) -----------------------------------------------------------) c n
+( *) N
+( * desc   : Verifica se uma string contem a palavra 'exit'.) N
+( *) N
+(auxf.c) (Page 2/3) (May 22, 14 2:50) title
+border
+grestore
+(Printed by ) rhead
+(auxf.c) (5/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( * params : 1. String a ser verificada.) c n
+( *) N
+( * output : Tipo bool: TRUE ou FALSE.) N
+( */) N
+(bool isExit\() p
+(const) K
+( ) p
+(char) k
+( *msg\)) p n
+({) N
+(  bool r = FALSE;) N
+(  ) S
+(int) k
+( len = strlen\(msg\);) p n
+() N
+(  ) S
+(if) K
+( \(strncmp\(msg, ") p
+(exit\\n) str
+(", len\) == 0 ||) p n
+(      strncmp\(msg, ") S
+(exit\\r) str
+(", len\) == 0 ||) p n
+(      strncmp\(msg, ") S
+(exit\\r\\n) str
+(", len\) == 0\)) p n
+(    r = TRUE;) N
+() N
+(  ) S
+(return) K
+( r;) p n
+(}) N
+(auxf.c) (Page 3/3) (May 22, 14 2:50) title
+border
+grestore
+(Printed by ) rhead
+(auxf.c) (6/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(/*) c n
+( *   A implementacao das funcoes wrapper abaixo foram retiradas da pagina web) N
+( * http://www.cs.odu.edu/~cs779/stevens2nd/lib/wrapsock.c e foram alteradas) N
+( * devido as necessidades particulares do Servidor de Eco.) N
+( */) N
+() p n
+(#include) K
+(  ") p
+(myNetworking.h) str
+(") p n
+() N
+(int) k n
+(Accept\() p
+(int) k
+( fd, ) p
+(struct) k
+( sockaddr *sa, socklen_t *salenptr\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(again:) N
+(  ) S
+(if) K
+( \( \(n = accept\(fd, sa, salenptr\)\) < 0\) {) p n
+(#ifdef) K
+(  EPROTO) p n
+(    ) S
+(if) K
+( \(errno == EPROTO || errno == ECONNABORTED\)) p n
+(#else) K n
+(    ) p
+(if) K
+( \(errno == ECONNABORTED\)) p n
+(#endif) K n
+(      ) p
+(goto) K
+( again;) p n
+(    ) S
+(else) K n
+(      perror\(") p
+(accept error) str
+("\);) p n
+(  }) N
+() N
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(void) k n
+(Bind\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(struct) k
+( sockaddr *sa, socklen_t salen\)) p n
+({) N
+(  ) S
+(if) K
+( \(bind\(fd, sa, salen\) < 0\)) p n
+(    perror\(") S
+(bind error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Connect\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(struct) k
+( sockaddr *sa, socklen_t salen\)) p n
+({) N
+(  ) S
+(if) K
+( \(connect\(fd, sa, salen\) < 0\)) p n
+(    perror\(") S
+(connect error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Getpeername\() p
+(int) k
+( fd, ) p
+(struct) k
+( sockaddr *sa, socklen_t *salenptr\)) p n
+({) N
+(  ) S
+(if) K
+( \(getpeername\(fd, sa, salenptr\) < 0\)) p n
+(    perror\(") S
+(getpeername error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Getsockname\() p
+(int) k
+( fd, ) p
+(struct) k
+( sockaddr *sa, socklen_t *salenptr\)) p n
+({) N
+(  ) S
+(if) K
+( \(getsockname\(fd, sa, salenptr\) < 0\)) p n
+(    perror\(") S
+(getsockname error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Getsockopt\() p
+(int) k
+( fd, ) p
+(int) k
+( level, ) p
+(int) k
+( optname, ) p
+(void) k
+( *optval, socklen_t *optlenptr\)) p n
+({) N
+(  ) S
+(if) K
+( \(getsockopt\(fd, level, optname, optval, optlenptr\) < 0\)) p n
+(    perror\(") S
+(getsockopt error) str
+("\);) p n
+(}) N
+() N
+(int) k n
+(Isfdtype\() p
+(int) k
+( fd, ) p
+(int) k
+( fdtype\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = isfdtype\(fd, fdtype\)\) < 0\)) p n
+(wrapsock.c) (Page 1/4) (May 21, 14 21:12) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(    perror\(") p
+(isfdtype error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(/* include Listen */) c n
+(void) k n
+(Listen\() p
+(int) k
+( fd, ) p
+(int) k
+( backlog\)) p n
+({) N
+(  ) S
+(char) k
+(  *ptr;) p n
+() N
+(    ) S
+(/*4can override 2nd argument with environment variable */) c n
+(  ) p
+(if) K
+( \( \(ptr = getenv\(") p
+(LISTENQ) str
+("\)\) != ) p
+(NULL) K
+(\)) p n
+(    backlog = atoi\(ptr\);) N
+() N
+(  ) S
+(if) K
+( \(listen\(fd, backlog\) < 0\)) p n
+(    perror\(") S
+(listen error) str
+("\);) p n
+(}) N
+(/* end Listen */) c n
+() p n
+(int) k n
+(Poll\() p
+(struct) k
+( pollfd *fdarray, ) p
+(unsigned) k
+( ) p
+(long) k
+( nfds, ) p
+(int) k
+( timeout\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = poll\(fdarray, nfds, timeout\)\) < 0\)) p n
+(    perror\(") S
+(poll error) str
+("\);) p n
+() N
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(ssize_t) N
+(Recv\() S
+(int) k
+( fd, ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags\)) p n
+({) N
+(  ssize_t    n;) N
+() N
+(  ) S
+(if) K
+( \( \(n = recv\(fd, ptr, nbytes, flags\)\) < 0\)) p n
+(    perror\(") S
+(recv error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(ssize_t) N
+(Recvfrom\() S
+(int) k
+( fd, ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags,) p n
+(     ) S
+(struct) k
+( sockaddr *sa, socklen_t *salenptr\)) p n
+({) N
+(  ssize_t    n;) N
+() N
+(  ) S
+(if) K
+( \( \(n = recvfrom\(fd, ptr, nbytes, flags, sa, salenptr\)\) < 0\)) p n
+(    perror\(") S
+(recvfrom error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(ssize_t) N
+(Recvmsg\() S
+(int) k
+( fd, ) p
+(struct) k
+( msghdr *msg, ) p
+(int) k
+( flags\)) p n
+({) N
+(  ssize_t    n;) N
+() N
+(  ) S
+(if) K
+( \( \(n = recvmsg\(fd, msg, flags\)\) < 0\)) p n
+(    perror\(") S
+(recvmsg error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(int) k n
+(Select\() p
+(int) k
+( nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,) p n
+(       ) S
+(struct) k
+( timeval *timeout\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = select\(nfds, readfds, writefds, exceptfds, timeout\)\) < 0\)) p n
+(    perror\(") S
+(select error) str
+("\);) p n
+(wrapsock.c) (Page 2/4) (May 21, 14 21:12) title
+border
+grestore
+(Printed by ) rhead
+(wrapsock.c) (7/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(  ) p
+(return) K
+(\(n\);    ) p
+(/* can return 0 on timeout */) c n
+(}) p n
+() N
+(void) k n
+(Send\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags\)) p n
+({) N
+(  ) S
+(if) K
+( \(send\(fd, ptr, nbytes, flags\) != nbytes\)) p n
+(    perror\(") S
+(send error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Sendto\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(void) k
+( *ptr, size_t nbytes, ) p
+(int) k
+( flags,) p n
+(     ) S
+(const) K
+( ) p
+(struct) k
+( sockaddr *sa, socklen_t salen\)) p n
+({) N
+(  ) S
+(if) K
+( \(sendto\(fd, ptr, nbytes, flags, sa, salen\) != nbytes\)) p n
+(    perror\(") S
+(sendto error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Sendmsg\() p
+(int) k
+( fd, ) p
+(const) K
+( ) p
+(struct) k
+( msghdr *msg, ) p
+(int) k
+( flags\)) p n
+({) N
+(  ) S
+(int) k
+(      i;) p n
+(  ssize_t    nbytes;) N
+() N
+(  nbytes = 0;  ) S
+(/* must first figure out what return value should be */) c n
+(  ) p
+(for) K
+( \(i = 0; i < msg->msg_iovlen; i++\)) p n
+(    nbytes += msg->msg_iov[i].iov_len;) N
+() N
+(  ) S
+(if) K
+( \(sendmsg\(fd, msg, flags\) != nbytes\)) p n
+(    perror\(") S
+(sendmsg error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Setsockopt\() p
+(int) k
+( fd, ) p
+(int) k
+( level, ) p
+(int) k
+( optname, ) p
+(const) K
+( ) p
+(void) k
+( *optval, socklen_t optlen\)) p n
+({) N
+(  ) S
+(if) K
+( \(setsockopt\(fd, level, optname, optval, optlen\) < 0\)) p n
+(    perror\(") S
+(setsockopt error) str
+("\);) p n
+(}) N
+() N
+(void) k n
+(Shutdown\() p
+(int) k
+( fd, ) p
+(int) k
+( how\)) p n
+({) N
+(  ) S
+(if) K
+( \(shutdown\(fd, how\) < 0\)) p n
+(    perror\(") S
+(shutdown error) str
+("\);) p n
+(}) N
+() N
+(int) k n
+(Sockatmark\() p
+(int) k
+( fd\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = sockatmark\(fd\)\) < 0\)) p n
+(    perror\(") S
+(sockatmark error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+() N
+(/* include Socket */) c n
+(int) k n
+(Socket\() p
+(int) k
+( family, ) p
+(int) k
+( type, ) p
+(int) k
+( protocol\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = socket\(family, type, protocol\)\) < 0\)) p n
+(    perror\(") S
+(socket error) str
+("\);) p n
+(  ) S
+(return) K
+(\(n\);) p n
+(}) N
+(/* end Socket */) c n
+() p n
+(void) k n
+(wrapsock.c) (Page 3/4) (May 21, 14 21:12) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(Socketpair\() p
+(int) k
+( family, ) p
+(int) k
+( type, ) p
+(int) k
+( protocol, ) p
+(int) k
+( *fd\)) p n
+({) N
+(  ) S
+(int) k
+(    n;) p n
+() N
+(  ) S
+(if) K
+( \( \(n = socketpair\(family, type, protocol, fd\)\) < 0\)) p n
+(    perror\(") S
+(socketpair error) str
+("\);) p n
+(}) N
+(wrapsock.c) (Page 4/4) (May 21, 14 21:12) title
+border
+grestore
+(Printed by ) rhead
+(wrapsock.c) (8/8) (Thursday May 22, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

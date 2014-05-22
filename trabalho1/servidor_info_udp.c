@@ -95,7 +95,7 @@ const char* my_error_desc[] =
 {
     "",
     "usage: ./servidor_info_tcp <port number>",
-    "error: port number must be between 1 and 1024",
+    "error: port number must be between 1 and 8000",
     "error: database constains less rows than specified",
     "error: failed to bind",
     "error: vector 'busca' is not set",
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
 	/* verificação da porta usada: a porta deve ser well known */
 	i = atoi(argv[1]);
-	if (0 >= i && i > 1024) {
+	if (0 >= i && i > 8000) {
 		pMyError(PORT_OUT_RANGE, __func__);
 		exit(EXIT_FAILURE);
 	}

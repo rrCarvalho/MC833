@@ -71,7 +71,14 @@
 
 \FloatBarrier
 \section{Testes}
-\paragraph{}
+\paragraph{}O sistema foi testado executando-se o servidor e dois clientes, como mostrado na figura \ref{teste}. Cada um dos clientes conectou-se ao servidor usando um protocolo diferente e cada um enviou duas mensagens. Além disso, a figura \ref{ref} também inclui o programa htop mostrando o processo-filho que está atendendo ao cliente TCP.
+\begin{figure}[!ht]
+  \caption{Teste do sistema.}
+  \centering
+  \includegraphics[width=117mm]{images/teste.png}
+  \label{teste}
+\end{figure}
+\paragraph{}Além do teste da figura. Foram testados múltiplos clientes TCP e múltiplos clientes UDP com sucesso. Finalmente, um último teste entre um laptop rodando ArchLinux e uma máquina virtual Linux Mint foi feito em uma rede local (LAN), também com sucesso.
 
 
 

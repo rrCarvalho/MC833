@@ -1,0 +1,1292 @@
+%!PS-Adobe-3.0
+%%Title: MainActivity.java, activity_main.xml, fragment_main.xml, AndroidManifest.xml
+%%For: 
+%%Creator: a2ps version 4.14
+%%CreationDate: Wed Jun  4 21:37:47 2014
+%%BoundingBox: 24 24 588 768
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 5
+%%PageOrder: Ascend
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 612 def
+/sw 792 def
+/llx 24 def
+/urx 768 def
+/ury 588 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 7.493857 def
+/cw 4.496314 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   522.321860 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.clienteeco;) p n
+() N
+(import) K
+( java.io.IOException;) p n
+(import) K
+( java.io.InputStream;) p n
+(import) K
+( java.io.OutputStream;) p n
+(import) K
+( java.io.PrintWriter; ) p n
+(import) K
+( java.io.OutputStreamWriter;) p n
+(import) K
+( java.io.BufferedReader;) p n
+(import) K
+( java.io.InputStreamReader;) p n
+(import) K
+( java.net.Socket;) p n
+(import) K
+( java.net.UnknownHostException;) p n
+() N
+(import) K
+( android.support.v7.app.ActionBarActivity;) p n
+(import) K
+( android.support.v7.app.ActionBar;) p n
+(import) K
+( android.support.v4.app.Fragment;) p n
+(import) K
+( android.os.Bundle;) p n
+(import) K
+( android.view.LayoutInflater;) p n
+(import) K
+( android.view.Menu;) p n
+(import) K
+( android.view.MenuItem;) p n
+(import) K
+( android.view.View;) p n
+(import) K
+( android.view.ViewGroup;) p n
+(import) K
+( android.view.View.OnClickListener;) p n
+(import) K
+( android.widget.Button;) p n
+(import) K
+( android.widget.EditText;) p n
+(import) K
+( android.widget.TextView;) p n
+(import) K
+( android.os.Build;) p n
+() N
+(import) K
+( android.os.AsyncTask;) p n
+(import) K
+( android.app.Activity;) p n
+(import) K
+( android.util.Log;) p n
+() N
+() N
+(public) K
+( ) p
+(class) K
+( ) p
+(MainActivity) L
+( ) p
+(extends) K
+( ActionBarActivity) p n
+({) S 8 T () N
+() S 8 T (TextView textResponse;) N
+() S 8 T (EditText editTextAddress, editTextPort,editTextMsg; ) N
+() S 8 T (Button buttonConnect, buttonEnviar, buttonClear;) N
+() N
+() S 8 T (@Override) N
+() S 8 T () S
+(protected) K
+( ) p
+(void) k
+( onCreate\(Bundle savedInstanceState\)) p n
+() S 8 T ({) N
+() S 8 T () S 16 T (super.onCreate\(savedInstanceState\);) N
+() S 8 T () S 16 T (setContentView\(R.layout.activity_main\);) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T (editTextAddress = \(EditText\)findViewById\(R.id.editTextAddress\);) N
+() S 8 T () S 16 T (editTextPort = \(EditText\)findViewById\(R.id.editTextPort\);) N
+() S 8 T () S 16 T (buttonConnect = \(Button\)findViewById\(R.id.buttonConnect\);) N
+() S 8 T () S 16 T (buttonClear = \(Button\)findViewById\(R.id.buttonClear\);) N
+() S 8 T () S 16 T (textResponse = \(TextView\)findViewById\(R.id.textResponse\);) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T () S
+(/*Sent Button and Message Text Field*/) c n
+() p 8 T () S 16 T (buttonEnviar = \(Button\)findViewById\(R.id.buttonEnviar\);) N
+() S 8 T () S 16 T (editTextMsg = \(EditText\)findViewById\(R.id.editTextMsg\);) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T (buttonConnect.setOnClickListener\(buttonConnectOnClickListener\);) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T (buttonClear.setOnClickListener\() S
+(new) K
+( OnClickListener\(\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (@Override) N
+() S 8 T () S 16 T () S 24 T () S
+(public) K
+( ) p
+(void) k
+( onClick\(View v\)) p n
+() S 8 T () S 16 T () S 24 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T (textResponse.setText\(""\);) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T (}\);) N
+() S 8 T (}) N
+() S 8 T () N
+() S 8 T (OnClickListener buttonConnectOnClickListener = ) S
+(new) K
+( OnClickListener\(\)) p n
+() S 8 T ({) N
+() N
+(MainActivity.java) (Page 1/4) (May 29, 14 10:11) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T (@Override) N
+() S 8 T () S 16 T () S
+(public) K
+( ) p
+(void) k
+( onClick\(View arg0\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (MyClientTask myClientTask = ) S
+(new) K
+( MyClientTask\(editTextAdd) p n
+(ress.getText\(\).toString\(\), Integer.parseInt\(editTextPort.getText\(\).toString\(\)\)\);) N
+() S 8 T () S 16 T () S 24 T (myClientTask.execute\(\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T (};) N
+() N
+() S 8 T (@Override) N
+() S 8 T () S
+(public) K
+( ) p
+(boolean) k
+( onCreateOptionsMenu\(Menu menu\) {) p n
+() N
+() S 8 T () S 16 T () S
+(// Inflate the menu; this adds items to the action bar if it is ) c n
+(present.) N
+() p 8 T () S 16 T (getMenuInflater\(\).inflate\(R.menu.main, menu\);) N
+() S 8 T () S 16 T () S
+(return) K
+( ) p
+(true) k
+(;) p n
+() S 8 T (}) N
+() N
+() S 8 T (@Override) N
+() S 8 T () S
+(public) K
+( ) p
+(boolean) k
+( onOptionsItemSelected\(MenuItem item\) {) p n
+() S 8 T () S 16 T () S
+(// Handle action bar item clicks here. The action bar will) c n
+() p 8 T () S 16 T () S
+(// automatically handle clicks on the Home/Up button, so long) c n
+() p 8 T () S 16 T () S
+(// as you specify a parent activity in AndroidManifest.xml.) c n
+() p 8 T () S 16 T () S
+(int) k
+( id = item.getItemId\(\);) p n
+() S 8 T () S 16 T () S
+(if) K
+( \(id == R.id.action_settings\) {) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( ) p
+(true) k
+(;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () S
+(return) K
+( super.onOptionsItemSelected\(item\);) p n
+() S 8 T (}) N
+() N
+() S 8 T () S
+(/**) C n
+() S 8 T ( * A placeholder fragment containing a simple view.) N
+() S 8 T ( */) N
+() p 8 T () S
+(public) K
+( ) p
+(static) K
+( ) p
+(class) K
+( ) p
+(PlaceholderFragment) L
+( ) p
+(extends) K
+( Fragment {) p n
+() N
+() S 8 T () S 16 T () S
+(public) K
+( PlaceholderFragment\(\) {) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T (@Override) N
+() S 8 T () S 16 T () S
+(public) K
+( View onCreateView\(LayoutInflater inflater, ViewGroup cont) p n
+(ainer,) N
+() S 8 T () S 16 T () S 24 T () S 32 T (Bundle savedInstanceState\) {) N
+() S 8 T () S 16 T () S 24 T (View rootView = inflater.inflate\(R.layout.fragment_main,) N
+( container,) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(false) k
+(\);) p n
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( rootView;) p n
+() S 8 T () S 16 T (}) N
+() S 8 T (}) N
+() S 8 T () N
+() S 8 T () N
+() S 8 T () S
+(public) K
+( ) p
+(class) K
+( ) p
+(MyClientTask) L
+( ) p
+(extends) K
+( AsyncTask<Void, Void, Void>) p n
+() S 8 T ({) N
+() S 8 T () S 16 T (String dstAddress;) N
+() S 8 T () S 16 T () S
+(int) k
+( dstPort;) p n
+() S 8 T () S 16 T (String response = "";) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T (MyClientTask\(String addr, ) S
+(int) k
+( port\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (dstAddress = addr;) N
+() S 8 T () S 16 T () S 24 T (dstPort = port;) N
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T (@Override) N
+() S 8 T () S 16 T () S
+(protected) K
+( Void doInBackground\(Void... arg0\) ) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (Socket socket = ) S
+(null) k
+(;) p n
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S
+(try) K n
+() p 8 T () S 16 T () S 24 T ({) N
+(MainActivity.java) (Page 2/4) (May 29, 14 10:11) title
+border
+grestore
+(Printed by ) rhead
+(ClienteEco/src/com/example/clienteeco/MainActivity.java) (1/5) (Wednesday June 04, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () S 32 T (socket = ) S
+(new) K
+( Socket\(dstAddress, dstPort\);) p n
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T (response = ") S
+(Conectado) str
+(";) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (publishProgress\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T (InputStream inputStream = socket.getInputStream\() N
+(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (BufferedReader entrada = ) S
+(new) K
+( BufferedReader\() p
+(new) K
+( ) p n
+(InputStreamReader\(inputStream\)\);) N
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T (OutputStream outputStream= socket.getOutputStrea) N
+(m\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (PrintWriter saida = ) S
+(new) K
+( PrintWriter\() p
+(new) K
+( OutputSt) p n
+(reamWriter\(outputStream\),) S
+(true) k
+(\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T (saida.println\(") S
+(Sou eu!) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(/*) c n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (* notice:) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (* entrada.readLine\(\) will block if no da) N
+(ta return) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (*/) S
+(  ) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T () S 32 T (String datos = entrada.readLine\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (response = datos.toString\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () N
+() S 8 T () S 16 T () S 24 T (} ) N
+() S 8 T () S 16 T () S 24 T () S
+(catch) K
+( \(UnknownHostException e\)) p n
+() S 8 T () S 16 T () S 24 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(// TODO Auto-generated catch block) c n
+() p 8 T () S 16 T () S 24 T () S 32 T (e.printStackTrace\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (response = ") S
+(UnknownHostException: ) str
+(" + e.toString\(\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(catch) K
+( \(IOException e\)) p n
+() S 8 T () S 16 T () S 24 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(// TODO Auto-generated catch block) c n
+() p 8 T () S 16 T () S 24 T () S 32 T (e.printStackTrace\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (response = ") S
+(IOException: ) str
+(" + e.toString\(\);) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(finally) K n
+() p 8 T () S 16 T () S 24 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S
+(if) K
+(\(socket != ) p
+(null) k
+(\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(try) K
+( ) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (Log.d\(") S
+(Dev) str
+(", ") p
+(Close Socket) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (socket.close\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S
+(catch) K
+( \(IOException e\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T ({) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S
+(// TODO Auto-generated catch blo) c n
+(ck) N
+() p 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (e.printStackTrace\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (}) N
+() S 8 T () S 16 T () S 24 T () S 32 T (}) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( ) p
+(null) k
+(;) p n
+() S 8 T () S 16 T (}) N
+() N
+() S 8 T () S 16 T (@Override) N
+() S 8 T () S 16 T () S
+(protected) K
+( ) p
+(void) k
+( onPostExecute\(Void result\)) p n
+() S 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (textResponse.append\(response\);) N
+() S 8 T () S 16 T () S 24 T (textResponse.append\(") S
+(\\n) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (super.onPostExecute\(result\);) N
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () N
+() S 8 T () S 16 T (@Override) N
+() S 8 T () S 16 T () S
+(protected) K
+( ) p
+(void) k
+( onProgressUpdate \(Void... v\)) p n
+(MainActivity.java) (Page 3/4) (May 29, 14 10:11) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T ({) N
+() S 8 T () S 16 T () S 24 T (super.onProgressUpdate\(v\);) N
+() S 8 T () S 16 T () S 24 T (textResponse.append\(response\);) N
+() S 8 T () S 16 T () S 24 T (textResponse.append\(") S
+(\\n) str
+("\);) p n
+() S 8 T () S 16 T () S 24 T (Log.d\(") S
+(Dev) str
+(", ") p
+(Estou na funcao onProgressUpdate) str
+("\);) p n
+() S 8 T () S 16 T (}) N
+() S 8 T () S 16 T () N
+() S 8 T (}) N
+() N
+(}) N
+(MainActivity.java) (Page 4/4) (May 29, 14 10:11) title
+border
+grestore
+(Printed by ) rhead
+(ClienteEco/src/com/example/clienteeco/MainActivity.java) (2/5) (Wednesday June 04, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android") p n
+(    xmlns:tools="http://schemas.android.com/tools") N
+(    android:layout_width="match_parent") N
+(    android:layout_height="match_parent") N
+(    android:paddingBottom="@dimen/activity_vertical_margin") N
+(    android:paddingLeft="@dimen/activity_horizontal_margin") N
+(    android:paddingRight="@dimen/activity_horizontal_margin") N
+(    android:paddingTop="@dimen/activity_vertical_margin") N
+(    android:orientation="vertical") N
+(    tools:context=".MainActivity" >) N
+() N
+(    <EditText ) N
+(        android:id="@+id/address") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:hint="Endereco IP Srv" />) N
+(    <EditText ) N
+(        android:id="@+id/port") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:hint="Porta destino" />) N
+(    <EditText ) N
+(        android:id="@+id/message") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:hint="Mensagem" />) N
+(    <Button ) N
+(        android:id="@+id/connect") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:text="Conectar..."/>) N
+() N
+(    <Button) N
+(        android:id="@+id/enviar") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:text="Enviar Msg" />) N
+() N
+(    <Button ) N
+(        android:id="@+id/clear") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:text="Limpar"/> ) N
+() N
+() N
+(    <ScrollView) N
+(        android:id="@+id/scrollView1") N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content" >) N
+() N
+(        <LinearLayout) N
+(            android:layout_width="match_parent") N
+(            android:layout_height="match_parent") N
+(            android:orientation="vertical" >) N
+(            ) N
+(        <TextView) N
+(        android:id="@+id/response") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content"/>) N
+(        </LinearLayout>) N
+(    </ScrollView>) N
+() N
+(</LinearLayout>) N
+(activity_main.xml) (Page 1/1) (May 29, 14 10:05) title
+border
+grestore
+(Printed by ) rhead
+(ClienteEco/res/layout/activity_main.xml) (3/5) (Wednesday June 04, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android") p n
+(    xmlns:tools="http://schemas.android.com/tools") N
+(    android:layout_width="match_parent") N
+(    android:layout_height="match_parent") N
+(    android:paddingBottom="@dimen/activity_vertical_margin") N
+(    android:paddingLeft="@dimen/activity_horizontal_margin") N
+(    android:paddingRight="@dimen/activity_horizontal_margin") N
+(    android:paddingTop="@dimen/activity_vertical_margin") N
+(    tools:context=".MainActivity" >) N
+() N
+(    <Button) N
+(        android:id="@+id/buttonClear") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignLeft="@+id/buttonConnect") N
+(        android:layout_below="@+id/editTextMsg") N
+(        android:text="Limpar" />) N
+() N
+(    <Button) N
+(        android:id="@+id/buttonEnviar") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignBaseline="@+id/buttonClear") N
+(        android:layout_alignBottom="@+id/buttonClear") N
+(        android:layout_alignParentRight="true") N
+(        android:text="Enviar" />) N
+() N
+(    <TextView) N
+(        android:id="@+id/textResponse") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_below="@+id/buttonEnviar") N
+(        android:layout_marginTop="31dp") N
+(        android:textAppearance="?android:attr/textAppearanceSmall" />) N
+() N
+(    <EditText) N
+(        android:id="@+id/editTextPort") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignLeft="@+id/editTextAddress") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_below="@+id/editTextAddress") N
+(        android:ems="10") N
+(        android:hint="Porta" >) N
+() N
+(        <requestFocus />) N
+(    </EditText>) N
+() N
+(    <EditText) N
+(        android:id="@+id/editTextAddress") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_alignParentTop="true") N
+(        android:ems="10") N
+(        android:hint="Endere\303\247o IP" />) N
+() N
+(    <Button) N
+(        android:id="@+id/buttonConnect") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignLeft="@+id/editTextPort") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_below="@+id/editTextPort") N
+(        android:text="Conectar" />) N
+() N
+(fragment_main.xml) (Page 1/2) (May 22, 14 17:15) title
+border
+/v 1 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(    <EditText) p n
+(        android:id="@+id/editTextMsg") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignLeft="@+id/buttonConnect") N
+(        android:layout_alignRight="@+id/buttonEnviar") N
+(        android:layout_below="@+id/buttonConnect") N
+(        android:layout_marginTop="30dp") N
+(        android:ems="10") N
+(        android:hint="Mensagem" />) N
+() N
+(</RelativeLayout>) S
+(fragment_main.xml) (Page 2/2) (May 22, 14 17:15) title
+border
+grestore
+(Printed by ) rhead
+(ClienteEco/res/layout/fragment_main.xml) (4/5) (Wednesday June 04, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.147420 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<?xml version="1.0" encoding="utf-8"?>) p n
+(<manifest xmlns:android="http://schemas.android.com/apk/res/android") N
+(    package="com.example.clienteeco") N
+(    android:versionCode="1") N
+(    android:versionName="1.0" >) N
+() N
+(    <uses-sdk) N
+(        android:minSdkVersion="8") N
+(        android:targetSdkVersion="9" />) N
+() N
+(    <application) N
+(        android:allowBackup="true") N
+(        android:icon="@drawable/ic_launcher") N
+(        android:label="@string/app_name") N
+(        android:theme="@style/AppTheme" >) N
+(        <activity) N
+(            android:name="com.example.clienteeco.MainActivity") N
+(            android:label="@string/app_name" >) N
+(            <intent-filter>) N
+(                <action android:name="android.intent.action.MAIN" />) N
+() N
+(                <category android:name="android.intent.category.LAUNCHER" />) N
+(            </intent-filter>) N
+(        </activity>) N
+(    </application>) N
+() N
+(</manifest>) N
+(AndroidManifest.xml) (Page 1/1) (May 22, 14 13:22) title
+border
+grestore
+(Printed by ) rhead
+(ClienteEco/AndroidManifest.xml) (5/5) (Wednesday June 04, 2014) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

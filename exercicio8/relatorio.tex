@@ -1,0 +1,84 @@
+\documentclass[a4paper,10pt,oneside,final,titlepage,onecolumn]{article}
+
+\usepackage{ucs}
+\usepackage[portuguese]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{placeins}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=bash,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\scriptsize\ttfamily},
+  numbers=none,  
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=3
+}
+
+
+
+\title{Exercício 8 de MC833 --- Programação em Redes de Computadores}
+\author{Raul Rabelo Carvalho, 105607, turma A}
+
+
+
+\begin{document}
+
+
+
+\maketitle
+
+
+
+\section{}
+\paragraph{}Na linguagem Java, os vários passos necessários para obter uma conexão TCP do sistema operacional --- que em C são executados com chamadas de funções em sequência, como \verb|socket()|, \verb|bind|, \verb|connect|, etc. --- são feitos pela implementação da classe java.net.Socket. Assim, no cliente de eco para Android, a conexão com o servidor é estabelecida pela linha:
+\\\verb|socket = new Socket(dstAddress, dstPort);|
+\\que dá à aplicação um socket conectado ao servidor no endereço \emph{dstAddress} na porta \emph{dstPort}.
+
+
+
+\FloatBarrier
+\section{}
+\paragraph{}A classe java.net.Socket tem diversos construtores diferentes, incluindo\\
+\verb|public Socket (String dstName, int dstPort)|,\\
+o qual o argumento \verb|String dstName| aceita tanto um \emph{hostname} quanto um endereço IP, contando que o endereço IP seja passado como uma \emph{string} na forma ``x.x.x.x''.
+
+
+
+\FloatBarrier
+\section{}
+\paragraph{}O método \verb|getLocalPort()| da classe java.net.Socket retorna a porta local pela qual o cliente está conectado na forma de uma \emph{string} que pôde ser concatenada com a mensagem indicando uma conexão bem sucedida.
+
+
+
+\FloatBarrier
+\section{}
+\paragraph{}Para implementar a funcionalidade de eco, foi criado um objeto OnClickListener para o botão ``Enviar'', o qual altera uma flag no objeto MyClientTask. No método doInBackground do objeto MyClientTask, foi criado um \emph{loop} que envia ao servidor a \emph{string} do campo TextMessage e recebe a resposta do servidor, imprimindo a resposta.
+\begin{lstlisting}
+  while (true) {
+    if (newline) {
+      response = "";
+      saida.println(editTextMsg.getText().toString());
+      response = entrada.readLine(); 
+      publishProgress();
+      newline = false;
+    }
+  }
+\end{lstlisting}
+
+
+
+\end{document}

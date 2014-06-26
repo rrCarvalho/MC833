@@ -1,0 +1,158 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.notifyme.MainActivity$PlaceholderFragment" >
+
+	<TextView
+	    android:id="@+id/textView_ping"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentTop="true"
+	    android:textAppearance="?android:attr/textAppearanceSmall" />
+	
+    <TextView
+        android:id="@+id/textView_pong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/button_ping"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignRight="@+id/button_callme"
+        android:layout_below="@+id/textView_ping"
+        android:text="@string/button_ping" />
+
+    <Button
+        android:id="@+id/button_pong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_sorrylate"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/textView_pong"
+        android:text="@string/button_pong" />
+    
+	<EditText
+	    android:id="@+id/editText_ping"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignRight="@+id/button_ping"
+	    android:layout_below="@+id/button_ping"
+	    android:ems="10"
+	    android:inputType="text" />
+
+    <EditText
+        android:id="@+id/editText_pong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_pong"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/button_pong"
+        android:ems="10"
+        android:inputType="text" />
+
+   	<TextView
+	    android:id="@+id/textView_callme"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_below="@+id/editText_ping"
+	    android:textAppearance="?android:attr/textAppearanceSmall" />
+	
+    <TextView
+        android:id="@+id/textView_sorrylate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/editText_pong"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/button_callme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView_callme"
+        android:layout_toLeftOf="@+id/button_sorrylate"
+        android:text="@string/button_callme" />
+
+    <Button
+        android:id="@+id/button_sorrylate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/textView_sorrylate"
+        android:text="@string/button_sorrylate" />
+    
+	<EditText
+	    android:id="@+id/editText_callme"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignRight="@+id/button_callme"
+	    android:layout_below="@+id/button_callme"
+	    android:ems="10"
+	    android:inputType="text" />
+
+    <EditText
+        android:id="@+id/editText_sorrylate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_sorrylate"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/button_sorrylate"
+        android:ems="10"
+        android:inputType="text" />
+    
+	<TextView
+        android:id="@+id/textView_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/editText_sorrylate"
+        android:lines="10"
+        android:maxLines="10"
+        android:scrollHorizontally="false"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbars="vertical" />
+
+    <EditText
+        android:id="@+id/editText_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/button_chat_send"
+        android:ems="10"
+        android:inputType="textLongMessage" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/button_chat_send"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/chat_button_send" />
+
+
+
+
+
+</RelativeLayout>

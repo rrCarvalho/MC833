@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">NotifyMe</string>
+    <string name="title_activity_main">NotifyMe</string>
+    <string name="title_activity_login">NotifyMe Login</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_chat">NotifyMe Chat</string>
+    <string name="title_activity_friends">NotifyMe Friends</string>
+    <string name="title_activity_debug">NotifyMe Debug</string>
+    <string name="login_textView_username">Pick a username:</string>
+    <string name="login_textView_groupname">Join a group:</string>
+    <string name="login_textView_server">Enter server information:</string>
+    <string name="login_textView_ipaddress">IP address:</string>
+    <string name="login_textView_portnumber">Port number:</string>
+    <string name="login_button_connecttcp">Connect TCP</string>
+    <string name="login_button_connectudp">Connect UDP</string>
+    <string name="friends_button_check">Check status</string>
+    <string name="chat_button_send">Send</string>
+    <string name="button_ping">Ping!</string>
+    <string name="button_pong">Pong!</string>
+    <string name="button_callme">Call me.</string>
+    <string name="button_sorrylate">Sorry, I am late.</string>
+    <string name="menu_main">NotifyMe</string>
+    <string name="menu_login">Login</string>
+    <string name="menu_friends">Friends</string>
+    <string name="menu_debug">Debug</string>
+    
+
+</resources>

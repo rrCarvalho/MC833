@@ -1,0 +1,30 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.notifyme.DebugActivity" >
+
+    <item
+        android:id="@+id/action_main"
+        android:orderInCategory="100"
+        android:title="@string/menu_main"
+        app:showAsAction="always"/>
+    
+    <item
+        android:id="@+id/action_login"
+        android:orderInCategory="100"
+        android:title="@string/menu_login"
+        app:showAsAction="always"/>
+        
+    <item
+        android:id="@+id/action_friends"
+        android:orderInCategory="100"
+        android:title="@string/menu_friends"
+        app:showAsAction="always"/>
+            
+    <item
+        android:id="@+id/action_debug"
+        android:orderInCategory="100"
+        android:title="@string/menu_debug"
+        app:showAsAction="always"/>
+
+</menu>
